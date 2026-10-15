@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
+@import "tailwindcss";
+@import "./variables.css";
+
+/* Deep navy + electric cyan palette. Existing blue-* utilities map onto it:
+   600/700 = deep navy (primary), 50-400 = cyan-tinted accents and surfaces. */
+@theme {
+  --color-blue-50: #f0f9fc;
+  --color-blue-100: #d8f2f9;
+  --color-blue-200: #9fe8f7;
+  --color-blue-300: #4fd9ef;
+  --color-blue-400: #22d3ee;
+  --color-blue-500: #1d5a96;
+  --color-blue-600: #0f2d5c;
+  --color-blue-700: #0a1f44;
+}
+
+:root {
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--ink);
+  background: #fff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+@layer base { *, ::before, ::after { border-color: var(--line); } }
+html { scroll-behavior: smooth; }
+body { min-width: 320px; margin: 0; background: #fff; color: var(--ink); }
+body, button, input, textarea, select { font-family: "Inter", system-ui, sans-serif; }
+h1, h2, h3, h4 { font-family: "Plus Jakarta Sans", "Inter", sans-serif; font-weight: 600; letter-spacing: -0.02em; }
+body { line-height: 1.6; font-weight: 400; }
+h1, h2 { line-height: 1.15; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+img { max-width: 100%; display: block; }
+::selection { color: #fff; background: #0a1f44; }
+
+.eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; color: #0891b2; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+.display-heading { font-family: "Plus Jakarta Sans", sans-serif; letter-spacing: -0.025em; }
+.text-gradient { background: linear-gradient(100deg, #0a1f44 0%, #0e7490 60%, #06b6d4 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bg-brand-gradient { background: linear-gradient(135deg, #0a1f44 0%, #123a74 100%); }
+.bg-navy-gradient { background: linear-gradient(160deg, #060f26, #0a1f44 60%, #0c2a5a); }
+.bg-soft-gradient { background: linear-gradient(180deg, #f1f7fb 0%, #ffffff 100%); }
+
+/* One consistent Lucide stroke weight everywhere */
+svg.lucide { stroke-width: 1.75; }
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #06b6d4; outline-offset: 3px; }
+
+@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(1.6); opacity: 0; } }
+.pulse-ring::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--whatsapp); animation: pulse-ring 2.4s ease-out infinite; z-index: -1; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
