@@ -1,11 +1,11 @@
 import api from "./api";
 
-export async function getProducts() {
-  const response = await api.get("/products");
-  return response.data;
+export async function getProducts(params = {}) {
+  const { data } = await api.get("/products", { params });
+  return data;
 }
 
 export async function getProductById(id) {
-  const response = await api.get(`/products/${id}`);
-  return response.data;
+  const { data } = await api.get(`/products/${encodeURIComponent(id)}`);
+  return data;
 }

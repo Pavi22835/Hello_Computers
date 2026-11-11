@@ -3,7 +3,8 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, MessageCircle, Phone, ShoppingBag, UserRound, X } from "lucide-react";
 import logo from "../../assets/images/logo.jpeg";
 import { useCart } from "../../hooks/useCart";
-import { SITE, whatsappLink } from "../../config/site";
+import { whatsappLink } from "../../config/site";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -19,8 +20,10 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { items } = useCart();
+  const { settings } = useSiteSettings();
   const { pathname } = useLocation();
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
+  const whatsapp = whatsappLink(settings.whatsappNumber);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,12 +38,12 @@ function Navbar() {
 
   return (
     <>
-      <div className="hidden bg-[var(--navy)] text-xs text-blue-100/80 md:block">
+      {(settings.hours || settings.phone) && <div className="hidden bg-[var(--navy)] text-xs text-blue-100/80 md:block">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-8 py-2 lg:px-10">
-          <p>{SITE.hours}</p>
-          <a href={SITE.phoneHref} className="flex items-center gap-2 transition hover:text-white"><Phone size={13} /> {SITE.phone}</a>
+          <p>{settings.hours}</p>
+          {settings.phone && <a href={`tel:${settings.phone}`} className="flex items-center gap-2 transition hover:text-white"><Phone size={13} /> {settings.phone}</a>}
         </div>
-      </div>
+      </div>}
 
       <header className={`sticky top-0 z-50 border-b transition duration-300 ${scrolled ? "border-[var(--line)] bg-white/85 shadow-[0_6px_30px_-12px_rgba(15,27,52,0.15)] backdrop-blur-xl" : "border-transparent bg-white"}`}>
         <div className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
@@ -63,7 +66,7 @@ function Navbar() {
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-semibold text-white">{cartCount}</span>}
             </Link>
             <Link to="/profile" aria-label="My account" className="hidden h-10 w-10 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-blue-50 hover:text-blue-700 sm:flex"><UserRound size={19} /></Link>
-            <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="ml-1 hidden items-center gap-2 rounded-full bg-[var(--whatsapp)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 md:inline-flex"><MessageCircle size={16} /> WhatsApp</a>
+            {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="ml-1 hidden items-center gap-2 rounded-full bg-[var(--whatsapp)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 md:inline-flex"><MessageCircle size={16} /> WhatsApp</a>}
             <button type="button" aria-label={mobileOpen ? "Close menu" : "Open menu"} aria-expanded={mobileOpen} onClick={() => setMobileOpen((open) => !open)} className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-blue-50 xl:hidden">
               {mobileOpen ? <X size={21} /> : <Menu size={21} />}
             </button>
@@ -76,7 +79,7 @@ function Navbar() {
               <NavLink key={link.path} to={link.path} end={link.path === "/"} onClick={() => setMobileOpen(false)} className={({ isActive }) => `block rounded-xl px-4 py-3.5 text-base font-medium ${isActive ? "bg-blue-50 text-blue-700" : "text-[var(--ink)]"}`}>{link.name}</NavLink>
             ))}
             <Link to="/profile" onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3.5 text-base font-medium text-[var(--ink)]">My Account</Link>
-            <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-2 rounded-full bg-[var(--whatsapp)] px-5 py-3.5 text-sm font-semibold text-white"><MessageCircle size={17} /> Chat on WhatsApp</a>
+            {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-2 rounded-full bg-[var(--whatsapp)] px-5 py-3.5 text-sm font-semibold text-white"><MessageCircle size={17} /> Chat on WhatsApp</a>}
           </nav>
         )}
       </header>

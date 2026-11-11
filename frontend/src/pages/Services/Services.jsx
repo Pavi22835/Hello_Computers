@@ -1,11 +1,15 @@
-import { ArrowUpRight, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowUpRight, Check, Wrench } from "lucide-react";
 import PageHero from "../../components/common/PageHero";
 import Reveal from "../../components/common/Reveal";
 import SectionHeading from "../../components/common/SectionHeading";
 import CtaBanner from "../../components/common/CtaBanner";
 import { CallCta, WhatsAppCta } from "../../components/common/CtaButtons";
-import { services } from "../../data/storeContent";
+import Loader from "../../components/common/Loader";
+import { getServices } from "../../services/service.service";
 import { whatsappLink } from "../../config/site";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
 
 const steps = [
   { title: "Tell us the issue", copy: "Message or visit with your device." },
@@ -15,32 +19,53 @@ const steps = [
 ];
 
 function Services() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const { settings } = useSiteSettings();
+
+  useEffect(() => {
+    let active = true;
+    getServices()
+      .then((result) => { if (active) setServices(result); })
+      .catch((issue) => { if (active) setError(issue.response?.data?.message || "Services could not be loaded."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
   return (
     <>
-      <PageHero eyebrow="Services" title="Expert IT service," accent="done right." copy="Repairs, upgrades, networking and support for homes and businesses, with transparent pricing.">
+      <PageHero eyebrow="Services" title="Expert IT service," accent="done right." copy="View available services and contact our team to arrange support.">
         <WhatsAppCta label="Book a service" message="Hi, I would like to book a service." />
         <CallCta />
       </PageHero>
 
       <section className="mx-auto max-w-[1280px] px-5 py-16 sm:px-8 sm:py-24 lg:px-10">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map(({ title, copy, image, icon: Icon }, index) => (
-            <Reveal key={title} delay={(index % 3) * 0.07}>
-              <a href={whatsappLink(`Hi, I need help with: ${title}.`)} target="_blank" rel="noopener noreferrer" className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-cyan-300 hover:shadow-lg hover:shadow-slate-900/5">
-                <div className="relative h-44 overflow-hidden">
-                  <img src={image} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060f26]/60 to-transparent" />
-                  <span className="absolute bottom-4 left-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-blue-700"><Icon size={20} /></span>
-                </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <h2 className="text-lg font-semibold">{title}</h2>
-                  <p className="mt-2 flex-1 text-sm leading-6 text-[var(--muted)]">{copy}</p>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700">Enquire <ArrowUpRight size={16} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>
-                </div>
-              </a>
-            </Reveal>
-          ))}
-        </div>
+        {loading ? <Loader /> : error ? <p role="alert" className="rounded-xl bg-red-50 p-5 text-sm text-red-700">{error}</p> : services.length === 0 ? (
+          <p className="py-12 text-center text-sm text-[var(--muted)]">Services will appear here when available.</p>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service, index) => {
+              const href = whatsappLink(settings.whatsappNumber, `Hi, I need help with: ${service.title}.`);
+              const Card = (
+                <>
+                  <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100">
+                    {service.imageUrl && <img src={service.imageUrl} alt={service.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
+                    <Wrench size={34} className="relative text-blue-700" aria-hidden="true" />
+                  </div>
+                  <div className="flex flex-1 flex-col p-6">
+                    <h2 className="text-lg font-semibold">{service.title}</h2>
+                    <p className="mt-2 flex-1 text-sm leading-6 text-[var(--muted)]">{service.description}</p>
+                    <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700">Enquire <ArrowUpRight size={16} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>
+                  </div>
+                </>
+              );
+              return <Reveal key={service.id} delay={(index % 3) * 0.07}>
+                {href ? <a href={href} target="_blank" rel="noopener noreferrer" className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-cyan-300 hover:shadow-lg hover:shadow-slate-900/5">{Card}</a> : <Link to="/contact" className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-cyan-300 hover:shadow-lg hover:shadow-slate-900/5">{Card}</Link>}
+              </Reveal>
+            })}
+          </div>
+        )}
       </section>
 
       <section className="bg-soft-gradient py-20 sm:py-28">
@@ -62,8 +87,7 @@ function Services() {
           </ul>
         </div>
       </section>
-
-      <CtaBanner title="Device acting up?" copy="Send us a quick message. Most issues can be diagnosed the same day." message="Hi, my device needs service." />
+      <CtaBanner title="Device acting up?" copy="Send us a quick message to discuss service." message="Hi, my device needs service." />
     </>
   );
 }

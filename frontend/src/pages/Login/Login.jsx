@@ -4,6 +4,7 @@ import { useState } from "react";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import { useAuth } from "../../hooks/useAuth";
+import { loginUser } from "../../services/auth.service";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,20 +14,23 @@ function Login() {
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Temporary frontend login.
-    // This will be replaced with the NestJS API.
-    login("temporary-token", {
-      id: "temp-user",
-      name: "Customer",
-      email: form.email,
-      role: "CUSTOMER",
-    });
-
-    navigate("/");
+    setError("");
+    setSubmitting(true);
+    try {
+      const result = await loginUser(form);
+      if (result.user.role !== "CUSTOMER") throw new Error("Please sign in with a customer account.");
+      login(result.token, result.user);
+      navigate("/");
+    } catch (issue) {
+      setError(issue.response?.data?.message || issue.message || "Unable to sign in.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -46,6 +50,7 @@ function Login() {
           onSubmit={handleSubmit}
           className="mt-8 space-y-5"
         >
+          {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
           <Input
             label="Email"
             type="email"
@@ -74,8 +79,8 @@ function Login() {
             required
           />
 
-          <Button type="submit" className="w-full">
-            Sign In
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Signing In..." : "Sign In"}
           </Button>
         </form>
 

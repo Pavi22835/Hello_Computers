@@ -31,9 +31,8 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("hello-access-token");
-      localStorage.removeItem("hello-user");
+    if (error.response?.status === 401 && error.config?.headers?.Authorization) {
+      window.dispatchEvent(new Event("auth:expired"));
     }
 
     return Promise.reject(error);

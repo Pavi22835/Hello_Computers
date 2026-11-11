@@ -8,12 +8,12 @@ import ProductVisual from "./ProductVisual";
 function ProductCard({ product }) {
   const { addToCart } = useCart();
 
-  const price = product.discountPrice ?? product.price;
+  const hasDiscount = product.oldPrice > product.price;
 
   return (
     <div className="group overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg hover:shadow-slate-900/5">
       <Link to={`/products/${product.id}`} className="block">
-        <ProductVisual src={product.image} alt={product.name} category={product.category} className="h-60" />
+        <ProductVisual src={product.image || product.imageUrl || product.images?.[0]} alt={product.name} category={product.category} className="h-60" />
       </Link>
 
       <div className="p-5">
@@ -27,10 +27,10 @@ function ProductCard({ product }) {
 
         <div className="mt-5 flex items-center justify-between gap-4">
           <div>
-            <p className="display-heading text-lg font-semibold">{formatPrice(price)}</p>
+            <p className="display-heading text-lg font-semibold">{formatPrice(product.price)}</p>
 
-            {product.discountPrice && (
-              <p className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</p>
+            {hasDiscount && (
+              <p className="text-xs text-slate-400 line-through">{formatPrice(product.oldPrice)}</p>
             )}
           </div>
 

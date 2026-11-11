@@ -5,7 +5,8 @@ import { categoryIcons } from "../../data/storeContent";
 // Shows the product photo when available, otherwise a polished icon tile.
 function ProductVisual({ src, alt, category, className = "" }) {
   const [failed, setFailed] = useState(false);
-  const Icon = categoryIcons[category] || Package;
+  const categoryKey = typeof category === "string" ? category.toLowerCase() : "";
+  const Icon = categoryIcons[categoryKey] || categoryIcons.default || Package;
 
   return (
     <div className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100 ${className}`}>

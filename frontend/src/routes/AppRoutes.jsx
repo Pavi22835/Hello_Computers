@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
@@ -24,6 +25,8 @@ import Terms from "../pages/Terms/Terms";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Signup/Signup";
 import NotFound from "../pages/NotFound/NotFound";
+
+const AdminApp = lazy(() => import("../pages/Admin/Admin"));
 
 function AppRoutes() {
   return (
@@ -55,6 +58,7 @@ function AppRoutes() {
       </Route>
 
       <Route path="*" element={<NotFound />} />
+      <Route path="/admin/*" element={<Suspense fallback={<p className="p-8 text-center">Loading admin dashboard...</p>}><AdminApp /></Suspense>} />
     </Routes>
   );
 }

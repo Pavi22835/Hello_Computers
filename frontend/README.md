@@ -1,16 +1,12 @@
-# React + Vite
+# Hello Computers storefront
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The customer storefront and administrator dashboard run in this React + Vite application. The dashboard is available at `/admin`.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Start the API using the setup steps in [`../backend/README.md`](../backend/README.md).
+2. Set `VITE_API_URL` if the API is not at `http://localhost:5000/api`.
+3. Run `npm install`, `npm run dev`, `npm run lint`, and `npm run build`.
+4. Create an administrator with the backend `admin:create` script, then sign in at `/admin`.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Products, categories, offers, services, carts, checkout, and order history are backed by the API. Guest carts are stored in the browser and merged into the database cart after sign-in.

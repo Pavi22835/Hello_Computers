@@ -9,16 +9,21 @@ function Cart() {
     updateQuantity,
     removeFromCart,
     getCartTotal,
+    syncError,
+    loading,
   } = useCart();
 
   const subtotal = getCartTotal();
-  const shipping = subtotal > 5000 || subtotal === 0 ? 0 : 100;
-  const total = subtotal + shipping;
+
+  if (loading) {
+    return <section className="mx-auto max-w-7xl px-6 py-20 text-center">Loading your saved cart...</section>;
+  }
 
   if (items.length === 0) {
     return (
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="mx-auto max-w-lg text-center">
+          {syncError && <p role="alert" className="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{syncError}</p>}
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
             <ShoppingBag size={32} className="text-[var(--muted)]" />
           </div>
@@ -53,6 +58,7 @@ function Cart() {
           Review your products before checkout.
         </p>
       </div>
+      {syncError && <p role="alert" className="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{syncError}</p>}
 
       <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
         {/* Cart Items */}
@@ -183,11 +189,7 @@ function Cart() {
                 Shipping
               </span>
 
-              <span className="font-medium">
-                {shipping === 0
-                  ? "Free"
-                  : formatPrice(shipping)}
-              </span>
+              <span className="font-medium text-[var(--muted)]">Calculated at checkout</span>
             </div>
 
             <div className="border-t pt-4">
@@ -197,7 +199,7 @@ function Cart() {
                 </span>
 
                 <span className="font-semibold">
-                  {formatPrice(total)}
+                  {formatPrice(subtotal)}
                 </span>
               </div>
             </div>

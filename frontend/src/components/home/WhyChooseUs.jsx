@@ -1,6 +1,13 @@
 import Reveal from "../common/Reveal";
 import SectionHeading from "../common/SectionHeading";
-import { trustPoints } from "../../data/storeContent";
+import { Headphones, ShieldCheck, Truck, Wrench } from "lucide-react";
+
+const trustPoints = [
+  { title: "Genuine products", copy: "Authorised brands with manufacturer warranty.", icon: ShieldCheck },
+  { title: "Expert service", copy: "Support for repair, upgrades and setup.", icon: Wrench },
+  { title: "Fast delivery", copy: "Local delivery arranged with our team.", icon: Truck },
+  { title: "Friendly support", copy: "Reach our team on WhatsApp or phone.", icon: Headphones },
+];
 
 function WhyChooseUs() {
   return (

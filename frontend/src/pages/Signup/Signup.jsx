@@ -3,9 +3,12 @@ import { useState } from "react";
 
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
+import { useAuth } from "../../hooks/useAuth";
+import { registerUser } from "../../services/auth.service";
 
 function Signup() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
     name: "",
@@ -14,6 +17,8 @@ function Signup() {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (event) => {
     setForm({
@@ -22,16 +27,26 @@ function Signup() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
 
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match.");
+      setError("Passwords do not match.");
       return;
     }
 
-    // Backend registration will be connected here.
-    navigate("/login");
+    setSubmitting(true);
+    try {
+      const { name, email, phone, password } = form;
+      const result = await registerUser({ name, email, phone, password });
+      login(result.token, result.user);
+      navigate("/");
+    } catch (issue) {
+      setError(issue.response?.data?.message || issue.message || "Unable to create your account.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -51,6 +66,7 @@ function Signup() {
           onSubmit={handleSubmit}
           className="mt-8 space-y-5"
         >
+          {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
           <Input
             label="Full Name"
             name="name"
@@ -94,8 +110,8 @@ function Signup() {
             required
           />
 
-          <Button type="submit" className="w-full">
-            Create Account
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
 
