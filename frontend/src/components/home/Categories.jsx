@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import Reveal from "../common/Reveal";
 import SectionHeading from "../common/SectionHeading";
+import CategoryImage from "../common/CategoryImage";
 import { categoryIcons } from "../../data/storeContent";
 import { getCategories } from "../../services/category.service";
 
@@ -32,7 +33,7 @@ function Categories() {
               return (
                 <Reveal key={category.id} delay={index * 0.07}>
                   <Link to={`/categories/${category.slug}`} className="group relative block h-full min-h-[320px] overflow-hidden rounded-3xl bg-[var(--navy)] transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5">
-                    {category.imageUrl && <img src={category.imageUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-110" />}
+                    <CategoryImage category={category} className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#060f26] via-[#060f26]/55 to-transparent" />
                     <span className="absolute left-5 top-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-blue-700 backdrop-blur"><Icon size={20} /></span>
                     <div className="absolute inset-x-0 bottom-0 p-6">

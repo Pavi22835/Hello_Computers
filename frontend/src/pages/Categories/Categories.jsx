@@ -5,6 +5,7 @@ import PageHero from "../../components/common/PageHero";
 import Reveal from "../../components/common/Reveal";
 import CtaBanner from "../../components/common/CtaBanner";
 import Loader from "../../components/common/Loader";
+import CategoryImage from "../../components/common/CategoryImage";
 import { categoryIcons } from "../../data/storeContent";
 import { getCategories } from "../../services/category.service";
 
@@ -35,7 +36,7 @@ function Categories() {
               return (
                 <Reveal key={category.id} delay={(index % 2) * 0.08}>
                   <Link to={`/categories/${category.slug}`} className="group relative flex min-h-[340px] flex-col justify-between overflow-hidden rounded-3xl bg-[var(--navy)] p-8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5 sm:p-10">
-                    {category.imageUrl && <img src={category.imageUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
+                    <CategoryImage category={category} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#060f26] via-[#060f26]/50 to-[#060f26]/10" />
                     <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white/90 text-blue-700 backdrop-blur"><Icon size={26} /></span>
                     <div className="relative mt-12">

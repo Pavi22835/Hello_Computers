@@ -14,7 +14,7 @@ function StoreProductCard({ product, onAddToCart }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg hover:shadow-slate-900/5">
       <Link to={`/products/${product.id}`} className="relative block">
-        <ProductVisual src={product.image || product.imageUrl || product.images?.[0]} alt={product.name} category={categoryName} className="aspect-[4/3]" />
+        <ProductVisual src={product.image || product.imageUrl || product.images?.[0]} alt={product.name} productName={product.name} category={product.category || categoryName} className="aspect-[4/3]" />
         {product.badge && <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-blue-700 shadow-sm backdrop-blur">{product.badge}</span>}
         {hasDiscount && <span className="absolute right-4 top-4 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white">Save {Math.round((1 - product.price / product.oldPrice) * 100)}%</span>}
       </Link>

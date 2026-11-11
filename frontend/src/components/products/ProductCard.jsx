@@ -13,7 +13,7 @@ function ProductCard({ product }) {
   return (
     <div className="group overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg hover:shadow-slate-900/5">
       <Link to={`/products/${product.id}`} className="block">
-        <ProductVisual src={product.image || product.imageUrl || product.images?.[0]} alt={product.name} category={product.category} className="h-60" />
+        <ProductVisual src={product.image || product.imageUrl || product.images?.[0]} alt={product.name} productName={product.name} category={product.category} className="h-60" />
       </Link>
 
       <div className="p-5">
