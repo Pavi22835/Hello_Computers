@@ -5,8 +5,10 @@ import PageHero from "../../components/common/PageHero";
 import Reveal from "../../components/common/Reveal";
 import SectionHeading from "../../components/common/SectionHeading";
 import CtaBanner from "../../components/common/CtaBanner";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
 import { CallCta, WhatsAppCta } from "../../components/common/CtaButtons";
 import Loader from "../../components/common/Loader";
+import { getServiceImageUrl } from "../../data/storeContent";
 import { getServices } from "../../services/service.service";
 import { whatsappLink } from "../../config/site";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
@@ -50,8 +52,8 @@ function Services() {
               const Card = (
                 <>
                   <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100">
-                    {service.imageUrl && <img src={service.imageUrl} alt={service.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
-                    <Wrench size={34} className="relative text-blue-700" aria-hidden="true" />
+                    <ImageWithFallback src={service.imageUrl} fallbackSrc={getServiceImageUrl(service.title)} alt={service.title} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                    <Wrench size={34} className="relative text-white drop-shadow-md" aria-hidden="true" />
                   </div>
                   <div className="flex flex-1 flex-col p-6">
                     <h2 className="text-lg font-semibold">{service.title}</h2>

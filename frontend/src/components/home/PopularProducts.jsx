@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Tag } from "lucide-react";
 import Reveal from "../common/Reveal";
 import SectionHeading from "../common/SectionHeading";
+import ImageWithFallback from "../common/ImageWithFallback";
+import { getOfferImageUrl } from "../../data/storeContent";
 import { getOffers } from "../../services/offer.service";
 
 function PopularProducts() {
@@ -29,7 +31,7 @@ function PopularProducts() {
             {offers.map(({ id, title, description, imageUrl, discount }, index) => (
               <Reveal key={id} delay={index * 0.08}>
                 <Link to="/offers" className="group relative flex h-full min-h-[280px] flex-col justify-end overflow-hidden rounded-3xl border border-white/10 p-6 transition duration-300 hover:-translate-y-1 sm:p-8">
-                  {imageUrl && <img src={imageUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
+                  <ImageWithFallback src={imageUrl} fallbackSrc={getOfferImageUrl(title)} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#060f26] via-[#060f26]/65 to-[#060f26]/20" />
                   <div className="relative">
                     {discount != null && <p className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-3 py-1 text-xs font-semibold text-[#06142e]"><Tag size={13} />{discount}% off</p>}

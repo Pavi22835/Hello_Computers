@@ -17,6 +17,16 @@ const categoryImages = {
   accessories: unsplash("photo-1587829741301-dc798b83add3"),
   printers: unsplash("photo-1612815154858-60aa4c59eaa6"),
 };
+const offerImages = [
+  unsplash("photo-1496181133206-80ce9b88a853"),
+  unsplash("photo-1593642632823-8f785ba67e45"),
+  unsplash("photo-1587829741301-dc798b83add3"),
+];
+const serviceImages = [
+  unsplash("photo-1581092921461-eab62e97a780"),
+  unsplash("photo-1519389950473-47ba0277781c"),
+  unsplash("photo-1581092160562-40aa08e78837"),
+];
 
 function categoryKey(category) {
   const value = typeof category === "string"
@@ -43,4 +53,18 @@ export function getProductImageUrl(name, category) {
   if (/desktop|tower|monitor|gaming pc/.test(key)) return categoryImages.desktops;
   if (/laptop|notebook|chromebook|macbook/.test(key)) return categoryImages.laptops;
   return getCategoryImageUrl(category);
+}
+
+function imageForName(name, images) {
+  const key = typeof name === "string" ? name.toLowerCase() : "";
+  const index = [...key].reduce((total, character) => total + character.charCodeAt(0), 0);
+  return images[index % images.length];
+}
+
+export function getOfferImageUrl(title) {
+  return imageForName(title, offerImages);
+}
+
+export function getServiceImageUrl(title) {
+  return imageForName(title, serviceImages);
 }
