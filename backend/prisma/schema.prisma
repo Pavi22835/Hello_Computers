@@ -8,16 +8,24 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  phone        String?
-  passwordHash String
-  role         String   @default("CUSTOMER")
-  orders       Order[]
-  cartItems    CartItem[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String            @id @default(cuid())
+  name            String
+  email           String            @unique
+  phone           String?
+  passwordHash    String
+  role            String            @default("CUSTOMER")
+  isActive        Boolean           @default(true)
+  lastActivityAt  DateTime?
+  orders          Order[]
+  cartItems       CartItem[]
+  addresses       CustomerAddress[]
+  enquiries       Enquiry[]
+  serviceRequests ServiceRequest[]
+  serviceRequestHistory ServiceRequestHistory[] @relation("ServiceRequestHistoryActor")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([role, isActive, createdAt])
 }
 
 model Category {
@@ -26,21 +34,29 @@ model Category {
   slug        String    @unique
   description String?
   imageUrl    String?
+  isActive    Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([isActive, name])
 }
 
 model Product {
   id          String    @id @default(cuid())
   name        String
+  model       String?
   description String?
   brand       String?
   price       Float
+  discountPrice Float?
   oldPrice    Float?
   specifications String?
   badge       String?
   stock       Int       @default(0)
+  reservedStock Int     @default(0)
+  isFeatured  Boolean   @default(false)
+  isActive    Boolean   @default(true)
   imageUrl    String?
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -70,18 +86,82 @@ model Service {
   description String
   imageUrl    String?
   isActive    Boolean  @default(true)
+  requests    ServiceRequest[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Enquiry {
   id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   name      String
   email     String
   phone     String?
   message   String
   status    String   @default("NEW")
   createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([email, createdAt])
+}
+
+model CustomerAddress {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label         String
+  recipientName String
+  phone         String
+  streetAddress String
+  city          String
+  state         String
+  postalCode    String
+  country       String   @default("India")
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, isDefault, createdAt])
+}
+
+model ServiceRequest {
+  id                String                  @id @default(cuid())
+  userId            String?
+  user              User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  serviceId         String?
+  service           Service?                @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  serviceTitle      String
+  customerName      String?
+  email             String?
+  phone             String?
+  serviceType       String                  @default("OTHER_SERVICES")
+  laptopModel       String?
+  issueDescription  String                  @map("message")
+  status            String                  @default("PENDING")
+  trackingTokenHash String?                 @unique
+  statusHistory     ServiceRequestHistory[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([serviceType, createdAt])
+  @@index([email, createdAt])
+}
+
+model ServiceRequestHistory {
+  id          String         @id @default(cuid())
+  requestId   String
+  request     ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  status      String?
+  note        String?
+  isInternal  Boolean        @default(true)
+  actorId     String?
+  actor       User?          @relation("ServiceRequestHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+
+  @@index([requestId, createdAt])
 }
 
 model StoreSettings {
@@ -95,6 +175,12 @@ model StoreSettings {
   freeShippingThreshold  Float?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+
+model PageContent {
+  page      String   @id
+  content   Json
+  updatedAt DateTime @updatedAt
 }
 
 model ProductImage {
@@ -125,6 +211,14 @@ model Order {
   userId        String
   user          User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   status        String      @default("PENDING")
+  paymentStatus String      @default("PENDING")
+  paymentMethod String      @default("COD")
+  stockReserved Boolean     @default(false)
+  reservationExpiresAt DateTime?
+  razorpayOrderId String?   @unique
+  razorpayPaymentId String? @unique
+  razorpayRefundId String?
+  paymentFailureReason String?
   subtotal      Float
   shippingCost  Float
   total         Float
@@ -136,11 +230,28 @@ model Order {
   state         String
   postalCode    String
   items         OrderItem[]
+  refunds       OrderRefund[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
   @@index([userId, createdAt])
   @@index([status, createdAt])
+  @@index([paymentStatus, reservationExpiresAt])
+  @@index([createdAt])
+}
+
+model OrderRefund {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  razorpayRefundId String?  @unique
+  amount          Float
+  status          String   @default("pending")
+  reason          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([orderId, createdAt])
 }
 
 model OrderItem {
@@ -150,6 +261,7 @@ model OrderItem {
   productId   String?
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   productName String
+  productModel String?
   imageUrl    String?
   quantity    Int
   unitPrice   Float

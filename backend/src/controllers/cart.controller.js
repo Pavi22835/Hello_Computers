@@ -12,12 +12,15 @@ const includeProduct = {
 };
 
 function cartItemResponse(item) {
+  const product = item.product.discountPrice == null
+    ? item.product
+    : { ...item.product, oldPrice: item.product.price, price: item.product.discountPrice };
   return {
     ...item,
     product: {
-      ...item.product,
-      image: item.product.imageUrl,
-      images: item.product.images.map((image) => image.url),
+      ...product,
+      image: product.imageUrl,
+      images: product.images.map((image) => image.url),
     },
   };
 }
@@ -45,10 +48,12 @@ exports.replace = asyncHandler(async (request, response) => {
   }
 
   const updated = await prisma.$transaction(async (transaction) => {
-    const products = await transaction.product.findMany({ where: { id: { in: [...quantities.keys()] } } });
+    const products = await transaction.product.findMany({
+      where: { id: { in: [...quantities.keys()] }, isActive: true },
+    });
     if (products.length !== quantities.size) throw badRequest("One or more cart products are no longer available.");
     for (const product of products) {
-      if (product.stock < quantities.get(product.id)) {
+      if (product.stock - product.reservedStock < quantities.get(product.id)) {
         const error = new Error(`${product.name} does not have enough stock.`);
         error.status = 409;
         throw error;

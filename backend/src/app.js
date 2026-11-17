@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("node:path");
 const authRoutes = require("./routes/auth.routes");
 const productRoutes = require("./routes/product.routes");
 const categoryRoutes = require("./routes/category.routes");
@@ -10,6 +11,8 @@ const adminRoutes = require("./routes/admin.routes");
 const orderRoutes = require("./routes/order.routes");
 const cartRoutes = require("./routes/cart.routes");
 const settingsRoutes = require("./routes/settings.routes");
+const pageRoutes = require("./routes/page.routes");
+const orderController = require("./controllers/order.controller");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
@@ -27,7 +30,9 @@ app.use(cors({
     return callback(error);
   },
 }));
+app.post("/api/orders/razorpay/webhook", express.raw({ type: "application/json" }), orderController.razorpayWebhook);
 app.use(express.json({ limit: "1mb" }));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"), { index: false }));
 
 app.get("/api/health", (_request, response) => {
   response.json({ status: "ok" });
@@ -42,6 +47,7 @@ app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/pages", pageRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use((_request, response) => response.status(404).json({ message: "Route not found." }));

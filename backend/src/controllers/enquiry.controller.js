@@ -3,13 +3,24 @@ const asyncHandler = require("../middlewares/asyncHandler");
 const { requiredString, optionalString, email, badRequest } = require("../utils/validation");
 
 exports.create = asyncHandler(async (request, response) => {
-  const enquiry = await prisma.enquiry.create({
-    data: {
-      name: requiredString(request.body.name, "Name", 120),
-      email: email(request.body.email),
-      phone: optionalString(request.body.phone, "Phone", 40),
-      message: requiredString(request.body.message, "Message", 4000),
-    },
+  const address = email(request.body.email);
+  const customer = request.user?.role === "CUSTOMER" ? request.user : null;
+  const enquiry = await prisma.$transaction(async (transaction) => {
+    if (customer) {
+      await transaction.user.update({
+        where: { id: customer.id },
+        data: { lastActivityAt: new Date() },
+      });
+    }
+    return transaction.enquiry.create({
+      data: {
+        userId: customer?.id,
+        name: requiredString(request.body.name, "Name", 120),
+        email: address,
+        phone: optionalString(request.body.phone, "Phone", 40),
+        message: requiredString(request.body.message, "Message", 4000),
+      },
+    });
   });
   response.status(201).json(enquiry);
 });
