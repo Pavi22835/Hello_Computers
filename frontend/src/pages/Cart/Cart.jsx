@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../utils/formatPrice";
@@ -11,7 +12,13 @@ function Cart() {
     getCartTotal,
     syncError,
     loading,
+    refreshCart,
   } = useCart();
+
+  useEffect(() => {
+    if (loading) return;
+    refreshCart().catch(() => {});
+  }, [loading, refreshCart]);
 
   const subtotal = getCartTotal();
 
@@ -108,6 +115,7 @@ function Cart() {
                       >
                         {product.name}
                       </Link>
+                      {product.model && <p className="mt-1 text-xs text-[var(--muted)]">Model: {product.model}</p>}
                     </div>
 
                     <button
@@ -126,13 +134,14 @@ function Cart() {
                     <div className="flex items-center rounded-xl border border-[var(--line)]">
                       <button
                         type="button"
+                        disabled={item.quantity <= 1}
                         onClick={() =>
                           updateQuantity(
                             product.id,
                             item.quantity - 1
                           )
                         }
-                        className="p-2 text-[var(--muted)] hover:text-blue-700"
+                        className="p-2 text-[var(--muted)] hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                         aria-label="Decrease quantity"
                       >
                         <Minus size={15} />
@@ -144,13 +153,14 @@ function Cart() {
 
                       <button
                         type="button"
+                        disabled={item.quantity >= Math.min(100, Math.max(0, product.stock - (product.reservedStock || 0)))}
                         onClick={() =>
                           updateQuantity(
                             product.id,
                             item.quantity + 1
                           )
                         }
-                        className="p-2 text-[var(--muted)] hover:text-blue-700"
+                        className="p-2 text-[var(--muted)] hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                         aria-label="Increase quantity"
                       >
                         <Plus size={15} />

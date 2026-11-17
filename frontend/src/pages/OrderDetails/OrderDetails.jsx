@@ -27,8 +27,21 @@ function OrderDetails() {
         <>
           <div className="mt-8">
             <h1 className="text-3xl font-semibold">Order {order.orderNumber}</h1>
-            <p className="mt-2 text-sm text-[var(--muted)]">{new Date(order.createdAt).toLocaleString()} · {order.status}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{new Date(order.createdAt).toLocaleString()} · {order.status} · Payment {order.paymentStatus?.toLowerCase() || "pending"}</p>
           </div>
+          {order.status === "CANCELLED" ? (
+            <p className="mt-6 rounded-xl bg-slate-100 px-5 py-4 text-sm text-slate-700">This order has been cancelled. Payment status: {order.paymentStatus?.toLowerCase() || "pending"}.</p>
+          ) : order.status === "PENDING" ? (
+            <p className="mt-6 rounded-xl bg-amber-50 px-5 py-4 text-sm text-amber-800">Your order is awaiting payment confirmation.</p>
+          ) : (
+            <ol className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Order tracking progress">
+              {["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"].map((stage, index) => {
+                const current = ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"].indexOf(order.status);
+                const complete = index <= current;
+                return <li key={stage} className={`rounded-xl border px-3 py-3 text-center text-xs font-medium ${complete ? "border-blue-200 bg-blue-50 text-blue-800" : "border-[var(--line)] text-[var(--muted)]"}`}>{stage}</li>;
+              })}
+            </ol>
+          )}
           <div className="mt-8 grid gap-8 md:grid-cols-[1fr_320px]">
             <div className="space-y-4">
               {order.items.map((item) => (
@@ -49,7 +62,8 @@ function OrderDetails() {
                 <p className="flex justify-between"><span>Shipping</span><span>{formatPrice(order.shippingCost)}</span></p>
                 <p className="flex justify-between border-t pt-3 font-semibold"><span>Total</span><span>{formatPrice(order.total)}</span></p>
               </div>
-              <p className="mt-4 text-xs text-[var(--muted)]">Payment is due on delivery.</p>
+              <p className="mt-4 text-xs text-[var(--muted)]">{order.paymentStatus === "PAID" ? order.paymentMethod === "COD" ? "Cash payment received." : "Payment received securely online." : order.paymentMethod === "COD" ? "Payment is due on delivery." : `Payment status: ${order.paymentStatus?.toLowerCase() || "pending"}.`}</p>
+              {order.razorpayPaymentId && <p className="mt-2 break-all text-xs text-[var(--muted)]">Payment reference: {order.razorpayPaymentId}</p>}
             </aside>
           </div>
         </>

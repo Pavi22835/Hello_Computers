@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, ClipboardList, Eye, ImagePlus, Package, Pencil, Plus, Trash2, Users, Wrench } from "lucide-react";
+import { useDebounce } from "../../hooks/useDebounce";
+import OrdersManagement from "./OrdersManagement";
+import CustomersManagement from "./CustomersManagement";
+import ServiceEnquiriesManagement from "./ServiceEnquiriesManagement";
 import "./Admin.css";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/$/, "");
 const emptyStats = { products: 0, categories: 0, offers: 0, services: 0, enquiries: 0, newEnquiries: 0, lowStock: 0, orders: 0, customers: 0 };
 const sections = [
   { id: "dashboard", label: "Overview", icon: "⌂" },
-  { id: "products", label: "Products", icon: "▣" },
+  { id: "products", label: "Products", icon: <Package size={16} /> },
   { id: "categories", label: "Categories", icon: "◫" },
   { id: "offers", label: "Offers", icon: "％" },
   { id: "services", label: "Services", icon: "⚙" },
-  { id: "orders", label: "Orders", icon: "▤" },
-  { id: "customers", label: "Customers", icon: "♙" },
+  { id: "orders", label: "Orders", icon: <ClipboardList size={16} /> },
+  { id: "customers", label: "Customers", icon: <Users size={16} /> },
+  { id: "service-enquiries", label: "Service enquiries", icon: <Wrench size={16} /> },
   { id: "settings", label: "Store settings", icon: "⚙" },
   { id: "enquiries", label: "Enquiries", icon: "✉" },
 ];
@@ -20,42 +26,56 @@ const configs = {
     title: "Products",
     singular: "product",
     endpoint: "/products",
+    listEndpoint: "/products/admin",
+    viewable: true,
     fields: [
       { name: "name", label: "Product name", required: true },
+      { name: "model", label: "Model" },
       { name: "brand", label: "Brand" },
       { name: "price", label: "Price (₹)", type: "number", min: 0.01, step: "0.01", required: true },
-      { name: "oldPrice", label: "Original price (₹)", type: "number", min: 0.01, step: "0.01" },
+      { name: "discountPrice", label: "Discount price (₹)", type: "number", min: 0.01, step: "0.01", help: "Leave blank when the product has no discount." },
       { name: "stock", label: "Stock", type: "number", min: 0, step: "1" },
       { name: "categoryId", label: "Category", type: "category" },
-      { name: "imageUrl", label: "Image URL" },
-      { name: "images", label: "Additional image URLs", type: "textarea", help: "One image URL per line.", wide: true },
+      { name: "imageUrl", label: "Primary image URL" },
+      { name: "imageFiles", label: "Upload product images", type: "image-upload", wide: true, help: "Choose up to 10 JPEG, PNG, WebP, or AVIF images (8 MB each)." },
+      { name: "images", label: "Product image URLs", type: "textarea", help: "One image URL per line. Uploaded images will be added when you save.", wide: true },
       { name: "badge", label: "Badge" },
       { name: "specifications", label: "Specifications", type: "textarea", wide: true },
       { name: "description", label: "Description", type: "textarea", wide: true },
+      { name: "isFeatured", label: "Featured product", type: "checkbox", wide: true },
+      { name: "isActive", label: "Active on storefront", type: "checkbox", wide: true },
     ],
     columns: [
-      { label: "Product", render: (item) => <><strong>{item.name}</strong><small>{item.brand || "No brand"}</small></> },
+      { label: "Product", render: (item) => <><strong>{item.name}</strong><small>{[item.model, item.brand].filter(Boolean).join(" · ") || "No model or brand"}</small></> },
       { label: "Category", render: (item) => item.category?.name || "Uncategorized" },
-      { label: "Price", render: (item) => money(item.price) },
+      { label: "Price", render: (item) => item.discountPrice != null ? <><strong>{money(item.discountPrice)}</strong><small className="price-original">{money(item.price)}</small></> : money(item.price) },
       { label: "Stock", render: (item) => <span className={item.stock <= 5 ? "stock-low" : ""}>{item.stock} units</span> },
+      { label: "Featured", render: (item) => item.isFeatured ? <Status active>Featured</Status> : "—" },
+      { label: "Status", render: (item) => <Status active={item.isActive} /> },
     ],
-    defaults: { name: "", brand: "", price: "", oldPrice: "", stock: 0, categoryId: "", imageUrl: "", images: "", badge: "", specifications: "", description: "" },
+    defaults: { name: "", model: "", brand: "", price: "", discountPrice: "", stock: 0, categoryId: "", imageUrl: "", imageFiles: [], images: "", badge: "", specifications: "", description: "", isFeatured: false, isActive: true },
   },
   categories: {
     title: "Categories",
     singular: "category",
     endpoint: "/categories",
+    listEndpoint: "/categories/admin",
+    viewable: true,
     fields: [
       { name: "name", label: "Category name", required: true },
       { name: "slug", label: "URL slug", help: "Leave blank to generate from the category name." },
       { name: "imageUrl", label: "Image URL" },
+      { name: "imageFiles", label: "Upload category image", type: "image-upload", multiple: false, wide: true, help: "Choose one JPEG, PNG, WebP, or AVIF image (8 MB max)." },
       { name: "description", label: "Description", type: "textarea", wide: true },
+      { name: "isActive", label: "Active on storefront", type: "checkbox", wide: true },
     ],
     columns: [
+      { label: "Image", render: (item) => item.imageUrl ? <img className="category-thumbnail" src={item.imageUrl} alt="" /> : "—" },
       { label: "Category", render: (item) => <><strong>{item.name}</strong><small>/{item.slug}</small></> },
       { label: "Products", render: (item) => item._count?.products ?? "—" },
+      { label: "Status", render: (item) => <Status active={item.isActive} /> },
     ],
-    defaults: { name: "", slug: "", imageUrl: "", description: "" },
+    defaults: { name: "", slug: "", imageUrl: "", imageFiles: [], description: "", isActive: true },
   },
   offers: {
     title: "Offers",
@@ -95,48 +115,6 @@ const configs = {
     ],
     defaults: { title: "", description: "", imageUrl: "", isActive: true },
   },
-  orders: {
-    title: "Orders",
-    singular: "order",
-    endpoint: "/admin/orders",
-    fields: [
-      { name: "userId", label: "Customer ID", required: true, createOnly: true },
-      { name: "customerName", label: "Customer name", required: true, createOnly: true },
-      { name: "email", label: "Email", type: "email", required: true, createOnly: true },
-      { name: "phone", label: "Phone", required: true, createOnly: true },
-      { name: "address", label: "Address", required: true, createOnly: true },
-      { name: "city", label: "City", required: true, createOnly: true },
-      { name: "state", label: "State", required: true, createOnly: true },
-      { name: "postalCode", label: "Postal code", required: true, createOnly: true },
-      { name: "items", label: "Order items (JSON)", type: "textarea", required: true, createOnly: true, wide: true, help: 'Format: [{"productId":"...","quantity":1}]' },
-      { name: "status", label: "Status", type: "select", options: ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"], editOnly: true },
-    ],
-    columns: [
-      { label: "Order", render: (item) => <><strong>{item.orderNumber}</strong><small>{date(item.createdAt)}</small></> },
-      { label: "Customer", render: (item) => <><strong>{item.customerName}</strong><small>{item.email}</small></> },
-      { label: "Total", render: (item) => money(item.total) },
-      { label: "Status", render: (item) => <Status active={item.status !== "CANCELLED"}>{item.status}</Status> },
-    ],
-    defaults: { userId: "", customerName: "", email: "", phone: "", address: "", city: "", state: "", postalCode: "", items: "[]", status: "PENDING" },
-  },
-  customers: {
-    title: "Customers",
-    singular: "customer",
-    endpoint: "/admin/customers",
-    fields: [
-      { name: "name", label: "Full name", required: true },
-      { name: "email", label: "Email", type: "email", required: true },
-      { name: "phone", label: "Phone" },
-      { name: "password", label: "Temporary password", type: "password", required: true, createOnly: true, help: "At least 8 characters. Only needed for new accounts." },
-    ],
-    columns: [
-      { label: "Customer", render: (item) => <><strong>{item.name}</strong><small>{item.email}</small></> },
-      { label: "Phone", render: (item) => item.phone || "—" },
-      { label: "Orders", render: (item) => item._count?.orders ?? 0 },
-      { label: "Joined", render: (item) => date(item.createdAt) },
-    ],
-    defaults: { name: "", email: "", phone: "", password: "" },
-  },
   settings: {
     title: "Store settings",
     singular: "settings",
@@ -175,10 +153,11 @@ function Status({ active, children }) {
 }
 
 async function request(path, { token, ...options } = {}) {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.body && !isFormData ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
@@ -250,11 +229,19 @@ function App() {
   const [noticeError, setNoticeError] = useState(false);
   const [stats, setStats] = useState(emptyStats);
   const [items, setItems] = useState([]);
+  const [productPagination, setProductPagination] = useState(null);
+  const [productPage, setProductPage] = useState(1);
+  const [categoryPagination, setCategoryPagination] = useState(null);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [categoryStatus, setCategoryStatus] = useState("all");
+  const debouncedCategorySearch = useDebounce(categorySearch, 300);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [viewing, setViewing] = useState(null);
 
   const toast = useCallback((message, isError = false) => {
     setNotice(message);
@@ -278,22 +265,34 @@ function App() {
   }, [api, logout, session]);
 
   const loadData = useCallback(async () => {
-    if (!session) return;
+    if (!session || section === "orders" || section === "customers" || section === "service-enquiries") return;
     setLoading(true);
     try {
       if (section === "dashboard") {
         setStats(await api("/admin/dashboard"));
       } else {
-        const path = section === "offers" || section === "services"
-          ? `${configs[section].endpoint}?includeInactive=true`
-          : configs[section].endpoint;
+        const path = section === "products"
+          ? `${configs.products.listEndpoint}?page=${productPage}&limit=20`
+          : section === "categories"
+            ? `${configs.categories.listEndpoint}?page=${categoryPage}&limit=20&search=${encodeURIComponent(debouncedCategorySearch)}&status=${categoryStatus}`
+          : section === "offers" || section === "services"
+            ? `${configs[section].endpoint}?includeInactive=true`
+            : configs[section].endpoint;
         const [result, categoryRows] = await Promise.all([
           api(path),
-          section === "products" ? api("/categories") : Promise.resolve([]),
+          section === "products" ? api("/categories/admin?page=1&limit=100&status=all") : Promise.resolve(null),
         ]);
-        const rows = section === "settings" ? [result] : result;
+        const rows = section === "settings"
+          ? [result]
+          : section === "products" || section === "categories"
+            ? result.items
+            : result;
         setItems(rows);
-        if (section === "products") setCategories(categoryRows);
+        if (section === "products") {
+          setCategories(categoryRows.items);
+          setProductPagination(result.pagination);
+        }
+        if (section === "categories") setCategoryPagination(result.pagination);
       }
     } catch (issue) {
       if (issue.message.includes("session") || issue.message.includes("Authentication")) logout();
@@ -301,7 +300,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [api, logout, section, session, toast]);
+  }, [api, categoryPage, categoryStatus, debouncedCategorySearch, logout, productPage, section, session, toast]);
 
   useEffect(() => {
     const timer = window.setTimeout(loadData, 0);
@@ -336,6 +335,7 @@ function App() {
       ...item,
       categoryId: item.categoryId || "",
       images: Array.isArray(item.images) ? item.images.map((image) => image.url || image).join("\n") : "",
+      imageFiles: [],
       items: "[]",
       startsAt: item.startsAt ? new Date(item.startsAt).toISOString().slice(0, 16) : "",
       endsAt: item.endsAt ? new Date(item.endsAt).toISOString().slice(0, 16) : "",
@@ -344,23 +344,17 @@ function App() {
 
   function payloadForSave() {
     const body = { ...form };
-    if (section === "orders") {
-      if (editing) return { status: body.status };
-      body.userId = body.userId.trim();
-      try {
-        body.items = JSON.parse(body.items);
-      } catch {
-        throw new Error("Order items must be valid JSON.");
-      }
-    }
-    if (section === "customers" && editing) delete body.password;
     for (const field of config.fields) {
-      if (field.type === "number") body[field.name] = body[field.name] === "" ? null : Number(body[field.name]);
+      if (field.type === "number") body[field.name] = body[field.name] == null || body[field.name] === "" ? null : Number(body[field.name]);
     }
-    if (section === "categories" && !body.slug) delete body.slug;
+    if (section === "categories") {
+      if (!body.slug) delete body.slug;
+      delete body.imageFiles;
+    }
     if (section === "products" && !body.categoryId) body.categoryId = null;
     if (section === "products") {
       body.images = body.images.split(/\r?\n/).map((image) => image.trim()).filter(Boolean);
+      delete body.imageFiles;
     }
     if (section === "offers") {
       body.startsAt = body.startsAt ? new Date(body.startsAt).toISOString() : null;
@@ -375,7 +369,21 @@ function App() {
     try {
       const method = editing || section === "settings" ? "PATCH" : "POST";
       const suffix = editing ? `/${editing}` : "";
-      await api(`${config.endpoint}${suffix}`, { method, body: JSON.stringify(payloadForSave()) });
+      const body = payloadForSave();
+      if (section === "products" && form.imageFiles?.length) {
+        const imageForm = new FormData();
+        form.imageFiles.forEach((file) => imageForm.append("images", file));
+        const uploaded = await api("/products/images", { method: "POST", body: imageForm });
+        body.images = [...body.images, ...uploaded.images];
+        if (!body.imageUrl && uploaded.images.length) body.imageUrl = uploaded.images[0];
+      }
+      if (section === "categories" && form.imageFiles?.length) {
+        const imageForm = new FormData();
+        imageForm.append("image", form.imageFiles[0]);
+        const uploaded = await api("/categories/images", { method: "POST", body: imageForm });
+        body.imageUrl = uploaded.imageUrl;
+      }
+      await api(`${config.endpoint}${suffix}`, { method, body: JSON.stringify(body) });
       setForm(null);
       await loadData();
       toast(`${config.singular[0].toUpperCase()}${config.singular.slice(1)} ${editing ? "updated" : "created"}.`);
@@ -452,6 +460,12 @@ function App() {
             <Dashboard stats={stats} onNavigate={setSection} />
           ) : section === "enquiries" ? (
             <Enquiries items={items} loading={loading} onStatus={setEnquiryStatus} onDelete={removeEnquiry} />
+          ) : section === "orders" ? (
+            <OrdersManagement api={api} toast={toast} />
+          ) : section === "customers" ? (
+            <CustomersManagement api={api} toast={toast} />
+          ) : section === "service-enquiries" ? (
+            <ServiceEnquiriesManagement api={api} toast={toast} />
           ) : (
             <ResourcePage
               config={config}
@@ -461,6 +475,15 @@ function App() {
               form={form}
               editing={editing}
               saving={saving}
+              onView={(item) => setViewing({ section, item })}
+              pagination={section === "products" ? productPagination : section === "categories" ? categoryPagination : null}
+              onPageChange={section === "categories" ? setCategoryPage : setProductPage}
+              filters={section === "categories" ? { search: categorySearch, status: categoryStatus } : null}
+              onFilterChange={(name, value) => {
+                if (name === "search") setCategorySearch(value);
+                else setCategoryStatus(value);
+                setCategoryPage(1);
+              }}
               onCreate={startCreate}
               onEdit={startEdit}
               onDelete={remove}
@@ -471,6 +494,9 @@ function App() {
           )}
         </div>
       </main>
+      {viewing?.section === "categories"
+        ? <CategoryPreview category={viewing.item} onClose={() => setViewing(null)} />
+        : viewing && <ProductPreview product={viewing.item} onClose={() => setViewing(null)} />}
     </div>
   );
 }
@@ -505,17 +531,17 @@ function Dashboard({ stats, onNavigate }) {
   );
 }
 
-function ResourcePage({ config, items, categories, loading, form, editing, saving, onCreate, onEdit, onDelete, onClose, onChange, onSubmit }) {
+function ResourcePage({ config, items, categories, loading, form, editing, saving, onCreate, onEdit, onDelete, onView, pagination, onPageChange, filters, onFilterChange, onClose, onChange, onSubmit }) {
   const itemCount = items.length;
   return (
     <>
-      <div className="page-heading"><div><p className="eyebrow">STORE MANAGEMENT</p><h1>{config.title}</h1><p>Create, update and organize your store {config.title.toLowerCase()}.</p></div><button className="primary-button" onClick={onCreate}><span>＋</span> {config.createLabel || `Add ${config.singular}`}</button></div>
+      <div className="page-heading"><div><p className="eyebrow">STORE MANAGEMENT</p><h1>{config.title}</h1><p>Create, update and organize your store {config.title.toLowerCase()}.</p></div><button className="primary-button" onClick={onCreate}><Plus size={15} /> {config.createLabel || `Add ${config.singular}`}</button></div>
       {form && <form className="editor-card" onSubmit={onSubmit}>
         <div className="editor-heading"><div><p className="eyebrow">{editing ? "EDIT RECORD" : "NEW RECORD"}</p><h2>{editing ? `Edit ${config.singular}` : `Add ${config.singular}`}</h2></div><button type="button" className="icon-button" aria-label="Close form" onClick={onClose}>×</button></div>
         <div className="form-grid">
           {config.fields.filter((field) => !(editing && field.createOnly) && !(!editing && field.editOnly)).map((field) => <label key={field.name} className={`${field.wide ? "field-wide" : ""} ${field.type === "checkbox" ? "checkbox-field" : ""}`}>
             {field.type === "checkbox" ? <><input type="checkbox" checked={Boolean(form[field.name])} onChange={(event) => onChange(field.name, event.target.checked)} />{field.label}</> : <>{field.label}
-              {field.type === "textarea" ? <textarea rows="3" required={field.required} value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)} /> : field.type === "category" ? <select value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)}><option value="">Uncategorized</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select> : field.type === "select" ? <select required={field.required} value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)}>{field.options.map((option) => <option key={option} value={option}>{option}</option>)}</select> : <input type={field.type || "text"} min={field.min} max={field.max} step={field.step} required={field.required} value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)} />}
+              {field.type === "textarea" ? <textarea rows="3" required={field.required} value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)} /> : field.type === "image-upload" ? <><span className="image-upload-control"><ImagePlus size={17} /> Select {field.multiple === false ? "image" : "images"}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple={field.multiple !== false} onChange={(event) => onChange(field.name, Array.from(event.target.files || []))} /></span>{form[field.name]?.length > 0 && <small className="field-help">{form[field.name].map((file) => file.name).join(", ")}</small>}</> : field.type === "category" ? <select value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)}><option value="">Uncategorized</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}{category.isActive ? "" : " (Inactive)"}</option>)}</select> : field.type === "select" ? <select required={field.required} value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)}>{field.options.map((option) => <option key={option} value={option}>{option}</option>)}</select> : <input type={field.type || "text"} min={field.min} max={field.max} step={field.step} required={field.required} value={form[field.name] ?? ""} onChange={(event) => onChange(field.name, event.target.value)} />}
               {field.help && <small className="field-help">{field.help}</small>}
             </>}
           </label>)}
@@ -523,14 +549,59 @@ function ResourcePage({ config, items, categories, loading, form, editing, savin
         <div className="editor-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving…" : editing ? "Save changes" : `Create ${config.singular}`}</button></div>
       </form>}
       <div className="table-card">
-        <div className="table-toolbar"><div><h2>All {config.title.toLowerCase()}</h2><p>{itemCount} {itemCount === 1 ? config.singular : `${config.singular}s`}</p></div><span className="table-total">{itemCount} total</span></div>
-        {loading ? <div className="table-message">Loading {config.title.toLowerCase()}…</div> : itemCount === 0 ? <div className="empty-state"><span>▤</span><h3>No {config.title.toLowerCase()} yet</h3><p>Create your first {config.singular} to get started.</p><button className="secondary-button" onClick={onCreate}>Add {config.singular}</button></div> : (
+        <div className="table-toolbar"><div><h2>All {config.title.toLowerCase()}</h2><p>{pagination?.total ?? itemCount} {config.singular}{(pagination?.total ?? itemCount) === 1 ? "" : "s"}</p></div><span className="table-total">{pagination?.total ?? itemCount} total</span></div>
+        {filters && <div className="resource-filters">
+          <label>Search categories<input type="search" value={filters.search} onChange={(event) => onFilterChange("search", event.target.value)} placeholder="Name, slug, or description" /></label>
+          <label>Status<select value={filters.status} onChange={(event) => onFilterChange("status", event.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+        </div>}
+        {loading ? <div className="table-message">Loading {config.title.toLowerCase()}…</div> : itemCount === 0 ? <div className="empty-state"><span>▤</span><h3>{filters && (filters.search || filters.status !== "all") ? "No matching categories" : `No ${config.title.toLowerCase()} yet`}</h3><p>{filters && (filters.search || filters.status !== "all") ? "Try changing the search or status filter." : `Create your first ${config.singular} to get started.`}</p><button className="secondary-button" onClick={onCreate}>Add {config.singular}</button></div> : (
           <div className="table-scroll"><table><thead><tr>{config.columns.map((column) => <th key={column.label}>{column.label}</th>)}<th className="actions-heading">Actions</th></tr></thead><tbody>
-            {items.map((item) => <tr key={item.id}>{config.columns.map((column) => <td key={column.label}>{column.render(item)}</td>)}<td><div className="row-actions"><button className="row-edit" onClick={() => onEdit(item)}>Edit</button>{config.deletable !== false && <button className="row-delete" onClick={() => onDelete(item)}>Delete</button>}</div></td></tr>)}
+            {items.map((item) => <tr key={item.id}>{config.columns.map((column) => <td key={column.label}>{column.render(item)}</td>)}<td><div className="row-actions">{config.viewable && <button className="row-view" onClick={() => onView(item)} aria-label={`View ${item.name}`} title="View"><Eye size={15} /></button>}<button className="row-edit" onClick={() => onEdit(item)} aria-label={`Edit ${item.name || item.title}`} title="Edit"><Pencil size={15} /></button>{config.deletable !== false && <button className="row-delete" onClick={() => onDelete(item)} aria-label={`Delete ${item.name || item.title}`} title="Delete"><Trash2 size={15} /></button>}</div></td></tr>)}
           </tbody></table></div>
         )}
+        {pagination && pagination.totalPages > 1 && <div className="admin-pagination"><span>Page {pagination.page} of {pagination.totalPages} · {pagination.total} {config.title.toLowerCase()}</span><div><button type="button" className="secondary-button" disabled={pagination.page <= 1} onClick={() => onPageChange(pagination.page - 1)}><ChevronLeft size={15} /> Previous</button><button type="button" className="secondary-button" disabled={pagination.page >= pagination.totalPages} onClick={() => onPageChange(pagination.page + 1)}>Next <ChevronRight size={15} /></button></div></div>}
       </div>
     </>
+  );
+}
+
+function ProductPreview({ product, onClose }) {
+  const imageUrls = [product.imageUrl, ...(product.images || []).map((image) => image.url || image)]
+    .filter((image, index, list) => image && list.indexOf(image) === index);
+  return (
+    <div className="product-preview-backdrop" role="presentation" onClick={onClose}>
+      <section className="product-preview" role="dialog" aria-modal="true" aria-labelledby="product-preview-title" onClick={(event) => event.stopPropagation()}>
+        <div className="product-preview-heading"><div><p className="eyebrow">PRODUCT DETAILS</p><h2 id="product-preview-title">{product.name}</h2></div><button type="button" className="icon-button" aria-label="Close preview" onClick={onClose}>×</button></div>
+        <div className="product-preview-images">{imageUrls.length ? imageUrls.map((url) => <img src={url} alt={product.name} key={url} />) : <Package size={56} strokeWidth={1} />}</div>
+        <dl className="product-preview-details">
+          <div><dt>Model</dt><dd>{product.model || "—"}</dd></div>
+          <div><dt>Brand</dt><dd>{product.brand || "—"}</dd></div>
+          <div><dt>Category</dt><dd>{product.category?.name || "Uncategorized"}</dd></div>
+          <div><dt>Price</dt><dd>{product.discountPrice != null ? <><span className="price-original">{money(product.price)}</span> {money(product.discountPrice)}</> : money(product.price)}</dd></div>
+          <div><dt>Stock</dt><dd>{product.stock}</dd></div>
+          <div><dt>Status</dt><dd>{product.isActive ? "Active" : "Inactive"}{product.isFeatured ? " · Featured" : ""}</dd></div>
+        </dl>
+        {product.description && <div className="product-preview-copy"><h3>Description</h3><p>{product.description}</p></div>}
+        {product.specifications && <div className="product-preview-copy"><h3>Specifications</h3><p>{product.specifications}</p></div>}
+      </section>
+    </div>
+  );
+}
+
+function CategoryPreview({ category, onClose }) {
+  return (
+    <div className="product-preview-backdrop" role="presentation" onClick={onClose}>
+      <section className="product-preview" role="dialog" aria-modal="true" aria-labelledby="category-preview-title" onClick={(event) => event.stopPropagation()}>
+        <div className="product-preview-heading"><div><p className="eyebrow">CATEGORY DETAILS</p><h2 id="category-preview-title">{category.name}</h2></div><button type="button" className="icon-button" aria-label="Close preview" onClick={onClose}>×</button></div>
+        {category.imageUrl && <div className="category-preview-image"><img src={category.imageUrl} alt={category.name} /></div>}
+        <dl className="product-preview-details">
+          <div><dt>Slug</dt><dd>/{category.slug}</dd></div>
+          <div><dt>Status</dt><dd>{category.isActive ? "Active" : "Inactive"}</dd></div>
+          <div><dt>Products</dt><dd>{category._count?.products ?? 0}</dd></div>
+        </dl>
+        {category.description && <div className="product-preview-copy"><h3>Description</h3><p>{category.description}</p></div>}
+      </section>
+    </div>
   );
 }
 

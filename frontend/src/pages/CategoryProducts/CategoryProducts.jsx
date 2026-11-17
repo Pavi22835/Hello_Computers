@@ -15,11 +15,11 @@ function CategoryProducts() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([getCategoryBySlug(slug), getProducts({ category: slug })])
+    Promise.all([getCategoryBySlug(slug), getProducts({ category: slug, page: 1, limit: 100 })])
       .then(([categoryResult, productRows]) => {
         if (!active) return;
         setCategory(categoryResult);
-        setProducts(productRows);
+        setProducts(productRows.items || productRows);
         setError("");
       })
       .catch((issue) => {

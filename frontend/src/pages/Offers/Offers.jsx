@@ -39,7 +39,7 @@ function Offers() {
               <Reveal key={offer.id} delay={(index % 2) * 0.08}>
                 <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white transition duration-300 hover:-translate-y-1 hover:border-cyan-300 hover:shadow-lg hover:shadow-slate-900/5">
                   <div className="relative h-56 overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100">
-                    <ImageWithFallback src={offer.imageUrl} fallbackSrc={getOfferImageUrl(offer.title)} alt={offer.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                    <ImageWithFallback src={getOfferImageUrl(offer.title)} fallbackSrc={offer.imageUrl} alt={offer.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#060f26]/70 to-transparent" />
                     {offer.discount != null && <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-3.5 py-1.5 text-xs font-semibold text-[#06142e]"><Tag size={13} />{offer.discount}% off</span>}
                     <span className="absolute bottom-4 right-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-blue-700"><Tag size={20} /></span>

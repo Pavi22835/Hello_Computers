@@ -1,4 +1,8 @@
 import { Keyboard, Laptop, Monitor, Package, Printer } from "lucide-react";
+import {
+  offerImages as localOfferImages,
+  serviceImages as localServiceImages,
+} from "../assets/images";
 
 export const categoryIcons = {
   laptops: Laptop,
@@ -17,16 +21,6 @@ const categoryImages = {
   accessories: unsplash("photo-1587829741301-dc798b83add3"),
   printers: unsplash("photo-1612815154858-60aa4c59eaa6"),
 };
-const offerImages = [
-  unsplash("photo-1496181133206-80ce9b88a853"),
-  unsplash("photo-1593642632823-8f785ba67e45"),
-  unsplash("photo-1587829741301-dc798b83add3"),
-];
-const serviceImages = [
-  unsplash("photo-1581092921461-eab62e97a780"),
-  unsplash("photo-1519389950473-47ba0277781c"),
-  unsplash("photo-1581092160562-40aa08e78837"),
-];
 
 function categoryKey(category) {
   const value = typeof category === "string"
@@ -62,9 +56,21 @@ function imageForName(name, images) {
 }
 
 export function getOfferImageUrl(title) {
-  return imageForName(title, offerImages);
+  const key = typeof title === "string" ? title.toLowerCase() : "";
+  if (/exchange|trade/.test(key)) return localOfferImages.exchange;
+  if (/printer/.test(key)) return localOfferImages.printer;
+  if (/office|desktop|computer/.test(key)) return localOfferImages.office;
+  if (/student|laptop|bundle/.test(key)) return localOfferImages.student;
+  return imageForName(title, Object.values(localOfferImages));
 }
 
 export function getServiceImageUrl(title) {
-  return imageForName(title, serviceImages);
+  const key = typeof title === "string" ? title.toLowerCase() : "";
+  if (/upgrade/.test(key)) return localServiceImages.upgrades;
+  if (/data|recover/.test(key)) return localServiceImages.dataRecovery;
+  if (/network|wifi/.test(key)) return localServiceImages.networking;
+  if (/security|virus/.test(key)) return localServiceImages.security;
+  if (/amc|maintenance/.test(key)) return localServiceImages.amc;
+  if (/repair|diagnos/.test(key)) return localServiceImages.repair;
+  return imageForName(title, Object.values(localServiceImages));
 }
