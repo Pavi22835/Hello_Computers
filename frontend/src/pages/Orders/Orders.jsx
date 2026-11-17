@@ -46,7 +46,7 @@ function Orders() {
               <span><strong className="block">{order.orderNumber}</strong><small className="text-[var(--muted)]">{new Date(order.createdAt).toLocaleString()}</small></span>
               <span className="text-sm">{order.items.length} item{order.items.length === 1 ? "" : "s"}</span>
               <span className="text-sm font-semibold">{formatPrice(order.total)}</span>
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold">{order.status}</span>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold">{order.status} · {order.paymentMethod} · {order.paymentStatus || "PENDING"}</span>
             </Link>
           ))}
         </div>

@@ -4,20 +4,26 @@ import { CheckCircle } from "lucide-react";
 function OrderSuccess() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order");
+  const paymentPending = searchParams.get("payment") === "pending";
+  const cashOnDelivery = searchParams.get("payment") === "cod";
   return (
     <section className="mx-auto max-w-3xl px-6 py-20 text-center">
       <CheckCircle
         size={72}
-        className="mx-auto text-green-600"
+        className={`mx-auto ${paymentPending ? "text-amber-500" : "text-green-600"}`}
         strokeWidth={1.5}
       />
 
       <h1 className="mt-6 text-3xl font-semibold">
-        Order Placed Successfully
+        {paymentPending ? "Payment Processing" : "Order Placed Successfully"}
       </h1>
 
       <p className="mx-auto mt-4 max-w-lg text-[var(--muted)]">
-        Thank you for your order. Your order has been received successfully.
+        {paymentPending
+          ? "Your payment is awaiting confirmation. Check your order details for the latest status."
+          : cashOnDelivery
+            ? "Thank you for your order. Pay for it when it is delivered."
+            : "Thank you for your order. Your payment has been confirmed."}
       </p>
       {orderId && <p className="mt-2 text-sm text-[var(--muted)]">Order reference: {orderId}</p>}
 

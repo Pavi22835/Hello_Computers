@@ -5,6 +5,11 @@ export async function getProducts(params = {}) {
   return data;
 }
 
+export async function getProductFilters() {
+  const { data } = await api.get("/products/filters");
+  return data;
+}
+
 export async function getProductById(id) {
   const { data } = await api.get(`/products/${encodeURIComponent(id)}`);
   return data;

@@ -39,10 +39,11 @@ function ProductDetails() {
     <section className="mx-auto max-w-7xl px-6 py-12">
       <Link to="/products" className="mb-8 inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-blue-700"><ArrowLeft size={16} />Back to Products</Link>
       <div className="grid gap-12 md:grid-cols-2">
-        <ProductGallery product={product} />
+        <ProductGallery key={product.id} product={product} />
         <div className="py-4">
           {product.brand && <p className="text-sm font-medium uppercase tracking-wider text-[var(--muted)]">{product.brand}</p>}
           <h1 className="mt-3 text-3xl font-semibold lg:text-4xl">{product.name}</h1>
+          {product.model && <p className="mt-2 text-sm text-[var(--muted)]">Model: {product.model}</p>}
           <p className="mt-6 text-3xl font-semibold">{formatPrice(product.price)}</p>
           {product.oldPrice > product.price && <p className="mt-1 text-sm text-slate-400 line-through">{formatPrice(product.oldPrice)}</p>}
           <div className="mt-6 border-y py-5"><p className="text-sm text-[var(--muted)]">{product.stock > 0 ? `${product.stock} items available` : "Currently out of stock"}</p></div>
