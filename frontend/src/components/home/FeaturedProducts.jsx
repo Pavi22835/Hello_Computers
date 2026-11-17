@@ -7,15 +7,15 @@ import StoreProductCard from "../products/StoreProductCard";
 import { useCart } from "../../hooks/useCart";
 import { getProducts } from "../../services/product.service";
 
-function FeaturedProducts() {
+function FeaturedProducts({ content }) {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState("");
   const { addToCart } = useCart();
 
   useEffect(() => {
     let active = true;
-    getProducts()
-      .then((result) => { if (active) setProducts(result.slice(0, 4)); })
+    getProducts({ featured: true, page: 1, limit: 4 })
+      .then((result) => { if (active) setProducts(result.items || result); })
       .catch((issue) => { if (active) setError(issue.response?.data?.message || "Featured products are unavailable."); });
     return () => { active = false; };
   }, []);
@@ -23,8 +23,8 @@ function FeaturedProducts() {
   return (
     <section className="bg-soft-gradient py-20 sm:py-28">
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8 lg:px-10">
-        <SectionHeading eyebrow="Featured" title="Popular picks" accent="from our store." copy="The latest products and availability from Hello Computers.">
-          <Link to="/products" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700">View all products <ArrowRight size={16} className="transition group-hover:translate-x-1" /></Link>
+        <SectionHeading eyebrow={content.eyebrow} title={content.title} accent={content.accent} copy={content.copy}>
+          <Link to={content.linkUrl} className="group inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700">{content.linkLabel} <ArrowRight size={16} className="transition group-hover:translate-x-1" /></Link>
         </SectionHeading>
 
         {error ? <p role="alert" className="mt-8 text-sm text-red-700">{error}</p> : products.length > 0 && (

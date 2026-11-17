@@ -24,6 +24,7 @@ function ProductCard({ product }) {
         <Link to={`/products/${product.id}`} className="mt-1 block">
           <h3 className="line-clamp-2 min-h-12 font-semibold text-[var(--ink)] transition hover:text-blue-700">{product.name}</h3>
         </Link>
+        {product.model && <p className="mt-1 text-xs text-[var(--muted)]">Model: {product.model}</p>}
 
         <div className="mt-5 flex items-center justify-between gap-4">
           <div>

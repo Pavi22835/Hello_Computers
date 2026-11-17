@@ -7,7 +7,7 @@ import CategoryImage from "../common/CategoryImage";
 import { categoryIcons } from "../../data/storeContent";
 import { getCategories } from "../../services/category.service";
 
-function Categories() {
+function Categories({ content }) {
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
 
@@ -22,8 +22,8 @@ function Categories() {
   return (
     <section className="bg-white py-20 sm:py-28">
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8 lg:px-10">
-        <SectionHeading eyebrow="Shop by category" title="Everything you need," accent="in one place." copy="Browse the current categories managed by our store.">
-          <Link to="/categories" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700">All categories <ArrowUpRight size={16} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></Link>
+        <SectionHeading eyebrow={content.eyebrow} title={content.title} accent={content.accent} copy={content.copy}>
+          <Link to={content.linkUrl} className="group inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700">{content.linkLabel} <ArrowUpRight size={16} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></Link>
         </SectionHeading>
 
         {error ? <p role="alert" className="mt-8 text-sm text-red-700">{error}</p> : categories.length > 0 && (

@@ -25,6 +25,7 @@ function StoreProductCard({ product, onAddToCart }) {
           <span>{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
         </div>
         <Link to={`/products/${product.id}`} className="mt-2 block font-semibold text-[var(--ink)] transition hover:text-blue-700">{product.name}</Link>
+        {product.model && <p className="mt-1 text-xs text-[var(--muted)]">Model: {product.model}</p>}
         {product.specifications && <p className="mt-1 line-clamp-2 text-sm text-[var(--muted)]">{product.specifications}</p>}
 
         <div className="mt-4 flex items-baseline gap-2">
