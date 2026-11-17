@@ -3,9 +3,8 @@ const prisma = require("../config/database");
 const asyncHandler = require("../middlewares/asyncHandler");
 const { requireAuth, requireAdmin } = require("../middlewares/auth.middleware");
 const orderController = require("../controllers/order.controller");
-const { requiredString, optionalString, email } = require("../utils/validation");
-const { hashPassword } = require("../utils/password");
-const { badRequest } = require("../utils/validation");
+const customerController = require("../controllers/customer.controller");
+const serviceEnquiryController = require("../controllers/service-enquiry.controller");
 const settingsController = require("../controllers/settings.controller");
 
 const router = Router();
@@ -31,66 +30,17 @@ router.patch("/settings", settingsController.update);
 
 router.get("/orders", orderController.listAll);
 router.post("/orders", orderController.createForCustomer);
+router.get("/orders/:id", orderController.getAdmin);
 router.patch("/orders/:id", orderController.updateStatus);
-router.delete("/orders/:id", orderController.remove);
+router.post("/orders/:id/refund", orderController.refundOrder);
 
-router.get("/customers", asyncHandler(async (_request, response) => {
-  response.json(await prisma.user.findMany({
-    where: { role: "CUSTOMER" },
-    select: { id: true, name: true, email: true, phone: true, createdAt: true, _count: { select: { orders: true } } },
-    orderBy: { createdAt: "desc" },
-  }));
-}));
+router.get("/customers", customerController.list);
+router.get("/customers/:id", customerController.getById);
+router.patch("/customers/:id/status", customerController.updateStatus);
 
-router.post("/customers", asyncHandler(async (request, response) => {
-  const password = request.body.password;
-  if (typeof password !== "string" || password.length < 8 || password.length > 200) {
-    throw badRequest("Password must contain 8 to 200 characters.");
-  }
-  const user = await prisma.user.create({
-    data: {
-      name: requiredString(request.body.name, "Name", 120),
-      email: email(request.body.email),
-      phone: optionalString(request.body.phone, "Phone", 40),
-      passwordHash: await hashPassword(password),
-      role: "CUSTOMER",
-    },
-    select: { id: true, name: true, email: true, phone: true, createdAt: true },
-  });
-  response.status(201).json(user);
-}));
-
-router.patch("/customers/:id", asyncHandler(async (request, response) => {
-  const data = {};
-  if (request.body.name !== undefined) data.name = requiredString(request.body.name, "Name", 120);
-  if (request.body.email !== undefined) data.email = email(request.body.email);
-  if (request.body.phone !== undefined) data.phone = optionalString(request.body.phone, "Phone", 40);
-  if (!Object.keys(data).length) throw badRequest("Provide a customer field to update.");
-  const result = await prisma.user.updateMany({
-    where: { id: request.params.id, role: "CUSTOMER" },
-    data,
-  });
-  if (result.count === 0) {
-    const error = new Error("Customer not found.");
-    error.status = 404;
-    throw error;
-  }
-  response.json(await prisma.user.findUnique({
-    where: { id: request.params.id },
-    select: { id: true, name: true, email: true, phone: true, createdAt: true },
-  }));
-}));
-
-router.delete("/customers/:id", asyncHandler(async (request, response) => {
-  const result = await prisma.user.deleteMany({
-    where: { id: request.params.id, role: "CUSTOMER" },
-  });
-  if (result.count === 0) {
-    const error = new Error("Customer not found.");
-    error.status = 404;
-    throw error;
-  }
-  response.status(204).end();
-}));
+router.get("/service-enquiries", serviceEnquiryController.listAdmin);
+router.get("/service-enquiries/:id", serviceEnquiryController.getAdmin);
+router.patch("/service-enquiries/:id/status", serviceEnquiryController.updateStatus);
+router.post("/service-enquiries/:id/notes", serviceEnquiryController.addInternalNote);
 
 module.exports = router;

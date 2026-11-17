@@ -14,9 +14,29 @@ const requireAuth = asyncHandler(async (request, response, next) => {
 
   const user = await prisma.user.findUnique({
     where: { id: payload.sub },
-    select: { id: true, name: true, email: true, phone: true, role: true },
+    select: { id: true, name: true, email: true, phone: true, role: true, isActive: true, lastActivityAt: true },
   });
   if (!user) return response.status(401).json({ message: "Your account is no longer available." });
+  if (!user.isActive) return response.status(401).json({ message: "This account has been deactivated. Contact support for assistance." });
+  request.user = user;
+  next();
+});
+
+const optionalAuth = asyncHandler(async (request, response, next) => {
+  const authorization = request.get("authorization");
+  if (!authorization) return next();
+  const [scheme, token] = authorization.split(" ");
+  const payload = scheme === "Bearer" && token ? verifyToken(token) : null;
+  if (!payload) {
+    return response.status(401).json({ message: "Your session is invalid or has expired." });
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: { id: true, name: true, email: true, phone: true, role: true, isActive: true, lastActivityAt: true },
+  });
+  if (!user || !user.isActive) {
+    return response.status(401).json({ message: "Your account is no longer available." });
+  }
   request.user = user;
   next();
 });
@@ -28,4 +48,4 @@ function requireAdmin(request, response, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin };
+module.exports = { requireAuth, optionalAuth, requireAdmin };
