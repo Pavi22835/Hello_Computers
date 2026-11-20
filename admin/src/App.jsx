@@ -378,7 +378,7 @@ function App() {
   const placeholder = placeholderPagesWithCoupons[section];
   return (
     <>
-      <AdminLayout sections={sections} section={section} stats={stats} user={session.user} onNavigate={changeSection} onLogout={logout} notice={notice} noticeError={noticeError}>
+      <AdminLayout sections={sections} section={section} stats={stats} user={session.user} onNavigate={changeSection} onLogout={logout} notice={notice} noticeError={noticeError} api={api}>
         {section === "dashboard" ? (
           <Dashboard stats={stats} onNavigate={changeSection} />
         ) : section === "enquiries" ? (

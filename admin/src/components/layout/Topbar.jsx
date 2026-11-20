@@ -1,6 +1,7 @@
-import { ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import GlobalSearch from "../common/GlobalSearch";
 
-function Topbar({ section, group, user }) {
+function Topbar({ section, group, user, onNavigate, api }) {
   return (
     <header className="topbar">
       <div className="topbar-context">
@@ -12,8 +13,8 @@ function Topbar({ section, group, user }) {
           )}
         </div>
       </div>
+      <GlobalSearch onNavigate={onNavigate} api={api} />
       <div className="topbar-right">
-        <span className="topbar-status"><span className="live-dot" /><ShieldCheck size={16} aria-hidden="true" /> Secure admin session</span>
         <div className="topbar-user">
           <span className="avatar avatar-small">{user.name?.slice(0, 1).toUpperCase()}</span>
           <span className="topbar-user-copy">{user.name}<small>Administrator</small></span>

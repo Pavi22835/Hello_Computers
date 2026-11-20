@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import logo from "../../assets/logos/logo.jpeg";
 
 function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate, onLogout }) {
-  const activeGroupId = navigationGroups.find((group) => group.sectionIds.includes(section))?.id ?? "";
-  const [expansion, setExpansion] = useState({ sectionGroup: "", groupId: "" });
-  const hasExpansionOverride = expansion.sectionGroup === activeGroupId;
+  const [expandedGroupIds, setExpandedGroupIds] = useState(() => {
+    const initialActiveGroupId = navigationGroups.find((group) => group.sectionIds.includes(section))?.id;
+    return initialActiveGroupId ? { [initialActiveGroupId]: true } : {};
+  });
+
+  useEffect(() => {
+    const currentActiveGroupId = navigationGroups.find((group) => group.sectionIds.includes(section))?.id;
+    if (currentActiveGroupId) {
+      setExpandedGroupIds((prev) => (prev[currentActiveGroupId] ? prev : { ...prev, [currentActiveGroupId]: true }));
+    }
+  }, [section, navigationGroups]);
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroupIds((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
 
   const sectionById = new Map(sections.map((item) => [item.id, item]));
 
@@ -19,9 +34,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
         {navigationGroups.map((group) => {
           const Icon = group.icon;
           const isActive = group.sectionIds.includes(section);
-          const isExpanded = hasExpansionOverride
-            ? expansion.groupId === group.id
-            : group.id === activeGroupId;
+          const isExpanded = Boolean(expandedGroupIds[group.id]);
           const submenuId = `sidebar-submenu-${group.id}`;
 
           return (
@@ -31,10 +44,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
                 className="nav-module"
                 aria-expanded={isExpanded}
                 aria-controls={submenuId}
-                onClick={() => setExpansion({
-                  sectionGroup: activeGroupId,
-                  groupId: isExpanded ? "" : group.id,
-                })}
+                onClick={() => toggleGroup(group.id)}
               >
                 <span className="nav-module-icon"><Icon size={18} aria-hidden="true" /></span>
                 <span className="nav-module-label">{group.label}</span>
