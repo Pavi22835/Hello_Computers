@@ -67,7 +67,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
                         tabIndex={isExpanded ? 0 : -1}
                         onClick={() => onNavigate(item.id)}
                       >
-                        <ItemIcon size={16} aria-hidden="true" />
+                        <ItemIcon size={18} aria-hidden="true" />
                         <span>{item.label}</span>
                         {item.id === "enquiries" && stats.newEnquiries > 0 && <span className="nav-count">{stats.newEnquiries}</span>}
                       </button>
@@ -81,7 +81,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
       </nav>
       <div className="sidebar-bottom">
         <div className="profile-chip"><span className="avatar">{user.name?.slice(0, 1).toUpperCase()}</span><span>{user.name}<small>Administrator</small></span></div>
-        <button className="logout-button" onClick={onLogout}>Sign out <ArrowUpRight size={16} aria-hidden="true" /></button>
+        <button className="logout-button" onClick={onLogout}>Sign out <ArrowUpRight size={18} aria-hidden="true" /></button>
       </div>
     </aside>
   );

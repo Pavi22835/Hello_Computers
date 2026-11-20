@@ -22,7 +22,7 @@
 
   --crm-sidebar: #FFFFFF;
   --crm-sidebar-hover: #F6F8FB;
-  --crm-sidebar-active: #F0F3F7;
+  --crm-sidebar-active: #E8EDF4;
   --crm-sidebar-border: #E5E7EB;
   --crm-sidebar-text: #475569;
   --crm-sidebar-text-bright: #334155;
@@ -275,7 +275,6 @@
   background: var(--crm-sidebar-active);
   color: #263548;
   font-weight: 600;
-  box-shadow: inset 2px 0 #8AA8D2;
 }
 
 .nav-count {
