@@ -236,15 +236,69 @@ function OrdersManagement({ api, toast }) {
 
       <div className="orders-panel">
         <div className="orders-filter-grid">
-          <label className="orders-search"><span>Search</span><div><Search size={16} /><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Order ID, customer, email, phone, product" /></div></label>
-          <label>Status<select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }}><option value="all">All statuses</option>{["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label>Payment status<select value={paymentStatus} onChange={(event) => { setPaymentStatus(event.target.value); resetPage(); }}><option value="all">All payments</option>{["PENDING", "PAID", "FAILED", "REFUND_PENDING", "REFUNDED"].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label>Method<select value={paymentMethod} onChange={(event) => { setPaymentMethod(event.target.value); resetPage(); }}><option value="all">All methods</option><option value="COD">COD</option><option value="RAZORPAY">Razorpay</option></select></label>
-          <label>From date<input type="date" value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); resetPage(); }} /></label>
-          <label>To date<input type="date" value={dateTo} onChange={(event) => { setDateTo(event.target.value); resetPage(); }} /></label>
-          <label>Sort by<select value={sortBy} onChange={(event) => { setSortBy(event.target.value); resetPage(); }}><option value="date">Order date</option><option value="total">Total amount</option><option value="customer">Customer</option><option value="status">Order status</option><option value="payment">Payment status</option></select></label>
-          <label>Direction<select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); resetPage(); }}><option value="desc">Descending</option><option value="asc">Ascending</option></select></label>
-          <label>Rows<select value={pageSizeValue} onChange={(event) => { setPageSizeValue(Number(event.target.value)); resetPage(); }}><option value={10}>10</option><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option></select></label>
+          <label className="orders-search">
+            <span>Search</span>
+            <div>
+              <Search size={16} />
+              <input type="search" value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Order ID, customer, email, phone, product" />
+            </div>
+          </label>
+          <label>
+            <span>Status</span>
+            <select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }}>
+              <option value="all">All statuses</option>
+              {["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"].map((item) => <option key={item}>{item}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Payment status</span>
+            <select value={paymentStatus} onChange={(event) => { setPaymentStatus(event.target.value); resetPage(); }}>
+              <option value="all">All payments</option>
+              {["PENDING", "PAID", "FAILED", "REFUND_PENDING", "REFUNDED"].map((item) => <option key={item}>{item}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Method</span>
+            <select value={paymentMethod} onChange={(event) => { setPaymentMethod(event.target.value); resetPage(); }}>
+              <option value="all">All methods</option>
+              <option value="COD">COD</option>
+              <option value="RAZORPAY">Razorpay</option>
+            </select>
+          </label>
+          <label>
+            <span>From date</span>
+            <input type="date" value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); resetPage(); }} />
+          </label>
+          <label>
+            <span>To date</span>
+            <input type="date" value={dateTo} onChange={(event) => { setDateTo(event.target.value); resetPage(); }} />
+          </label>
+          <label>
+            <span>Sort by</span>
+            <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); resetPage(); }}>
+              <option value="date">Order date</option>
+              <option value="total">Total amount</option>
+              <option value="customer">Customer</option>
+              <option value="status">Order status</option>
+              <option value="payment">Payment status</option>
+            </select>
+          </label>
+          <label>
+            <span>Direction</span>
+            <select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); resetPage(); }}>
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+          </label>
+          <label>
+            <span>Rows</span>
+            <select value={pageSizeValue} onChange={(event) => { setPageSizeValue(Number(event.target.value)); resetPage(); }}>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </label>
         </div>
 
         {error && <div className="notice notice-error orders-error" role="alert">{error}</div>}

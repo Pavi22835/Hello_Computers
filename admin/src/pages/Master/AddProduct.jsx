@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Box,
   CircleDollarSign,
   FileText,
@@ -79,7 +80,7 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
 
     if (isProduct) {
       return (
-        <label key={field.name} className={`product-form-field ${field.wide ? "product-form-field-wide" : ""}`}>
+        <label key={field.name} className={`product-form-field ${field.wide || field.name === "name" ? "product-form-field-wide" : ""} product-form-field-${field.name}`}>
           <span className="product-form-label">{field.label}{field.required && <i aria-hidden="true">*</i>}</span>
           {control}
           {field.help && <small className="product-field-help">{field.help}</small>}
@@ -128,23 +129,29 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
 
     return (
       <form className="product-editor-page" onSubmit={onSubmit}>
+        <nav className="product-breadcrumbs" aria-label="Breadcrumb">
+          <button type="button" onClick={onClose}><ArrowLeft size={15} aria-hidden="true" /> Products</button>
+          <span aria-hidden="true">/</span>
+          <span>{editing ? "Edit product" : "Add product"}</span>
+        </nav>
+
         <header className="product-editor-header">
           <div className="product-editor-title">
-            <span className="product-editor-mark"><Package size={20} aria-hidden="true" /></span>
+            <span className="product-editor-mark"><Package size={22} aria-hidden="true" /></span>
             <div>
               <p className="eyebrow">PRODUCT CATALOG</p>
               <h1>{editing ? "Edit Product" : "Add Product"}</h1>
               <p>{editing ? "Update product details and inventory." : "Create a new product for your store."}</p>
             </div>
           </div>
-          <button type="button" className="icon-button" aria-label="Close form" onClick={onClose}><X size={18} aria-hidden="true" /></button>
+          <button type="button" className="product-close-button" aria-label="Close form" onClick={onClose} title="Close"><X size={18} aria-hidden="true" /></button>
         </header>
 
         <div className="product-editor-layout">
           <div className="product-details-column">
             <section className="product-details-card">
               <div className="product-section-heading">
-                <span className="product-section-icon"><Box size={17} aria-hidden="true" /></span>
+                <span className="product-section-icon"><Box size={18} aria-hidden="true" /></span>
                 <div><h2>Basic details</h2><p>Product identity, category and visibility.</p></div>
               </div>
               <div className="product-form-grid">
@@ -157,7 +164,7 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
 
             <section className="product-details-card">
               <div className="product-section-heading">
-                <span className="product-section-icon"><FileText size={17} aria-hidden="true" /></span>
+                <span className="product-section-icon"><FileText size={18} aria-hidden="true" /></span>
                 <div><h2>Description & specifications</h2><p>Help customers understand the product.</p></div>
               </div>
               <div className="product-form-grid">
@@ -167,11 +174,11 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
 
             <section className="product-details-card">
               <div className="product-section-heading">
-                <span className="product-section-icon"><CircleDollarSign size={17} aria-hidden="true" /></span>
+                <span className="product-section-icon"><CircleDollarSign size={18} aria-hidden="true" /></span>
                 <div><h2>Pricing & stock</h2><p>Set the selling price and available inventory.</p></div>
                 <span className="product-required-chip">Required</span>
               </div>
-              <div className="product-form-grid">
+              <div className="product-form-grid product-pricing-grid">
                 {renderProductFields(["price", "discountPrice", "stock"])}
               </div>
             </section>
@@ -179,7 +186,7 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
 
           <aside className="product-media-card">
             <div className="product-section-heading">
-              <span className="product-section-icon"><Images size={17} aria-hidden="true" /></span>
+              <span className="product-section-icon"><Images size={18} aria-hidden="true" /></span>
               <div><h2>Product images</h2><p>Upload a main image and gallery photos.</p></div>
             </div>
 
@@ -200,7 +207,7 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
                   event.currentTarget.value = "";
                 }}
               />
-              <ImagePlus size={27} aria-hidden="true" />
+              <ImagePlus size={28} aria-hidden="true" />
               <strong>Drag and drop images here</strong>
               <span className="product-upload-or">or</span>
               <span className="product-upload-button">Choose Files</span>
@@ -215,7 +222,7 @@ function AddProduct({ config, form, editing, saving, categories, onClose, onChan
               <div className="product-image-main">
                 {activeImage
                   ? <img src={activeImage.url} alt={imageAlt} />
-                  : <div className="product-image-empty"><Image size={34} aria-hidden="true" /><strong>No images selected</strong><span>Upload product images to see a preview.</span></div>}
+                  : <div className="product-image-empty"><Image size={36} aria-hidden="true" /><strong>No images selected</strong><span>Upload product images to see a preview.</span></div>}
                 {activeImage?.isPrimary && <span className="product-main-image-badge">Main image</span>}
               </div>
               {previewImages.length > 0 && (

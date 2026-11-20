@@ -67,8 +67,8 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
                         tabIndex={isExpanded ? 0 : -1}
                         onClick={() => onNavigate(item.id)}
                       >
-                        <ItemIcon size={18} aria-hidden="true" />
-                        <span>{item.label}</span>
+                        <span className="nav-sub-link-icon"><ItemIcon size={17} aria-hidden="true" /></span>
+                        <span className="nav-sub-link-label">{item.label}</span>
                         {item.id === "enquiries" && stats.newEnquiries > 0 && <span className="nav-count">{stats.newEnquiries}</span>}
                       </button>
                     );
