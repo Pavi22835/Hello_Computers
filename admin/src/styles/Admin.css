@@ -3,7 +3,7 @@
    Pure CSS Redesign - 100% Structure & HTML Intact
    Color Palette:
      Primary:    #2563EB
-     Sidebar:    #0F172A
+     Sidebar:    #FFFFFF
      Background: #F8FAFC
      Border:     #E5E7EB
      Success:    #22C55E
@@ -20,12 +20,12 @@
   --crm-primary-light: #EFF6FF;
   --crm-primary-border: #BFDBFE;
 
-  --crm-sidebar: #0F172A;
-  --crm-sidebar-hover: #1E293B;
-  --crm-sidebar-active: rgba(37, 99, 235, 0.15);
-  --crm-sidebar-border: #1E293B;
-  --crm-sidebar-text: #94A3B8;
-  --crm-sidebar-text-bright: #F8FAFC;
+  --crm-sidebar: #FFFFFF;
+  --crm-sidebar-hover: #F6F8FB;
+  --crm-sidebar-active: #F0F3F7;
+  --crm-sidebar-border: #E5E7EB;
+  --crm-sidebar-text: #475569;
+  --crm-sidebar-text-bright: #334155;
 
   --crm-bg: #F8FAFC;
   --crm-card: #FFFFFF;
@@ -91,7 +91,7 @@
   padding: 0 6px 12px;
   color: var(--crm-sidebar-text-bright);
   font-size: 14.5px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
   border-bottom: 1px solid var(--crm-sidebar-border);
@@ -106,7 +106,7 @@
   border-radius: 8px;
   object-fit: cover;
   background: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
 }
 
 .brand span {
@@ -127,9 +127,9 @@
 
 .nav-caption {
   margin: 12px 8px 6px;
-  color: #64748B;
+  color: #8491A2;
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   flex-shrink: 0;
@@ -145,7 +145,7 @@
   gap: 2px;
   padding-right: 4px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+  scrollbar-color: #D7DEE8 #FFFFFF;
 }
 
 .sidebar nav::-webkit-scrollbar {
@@ -157,12 +157,12 @@
 }
 
 .sidebar nav::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: #D7DEE8;
   border-radius: 9999px;
 }
 
 .sidebar nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
+  background: #AEB9C8;
 }
 
 .nav-group {
@@ -179,8 +179,8 @@
   height: 35px;
   padding: 0 10px;
   border-radius: 7px;
-  color: #CBD5E1;
-  font-size: 13px;
+  color: var(--crm-sidebar-text);
+  font-size: 13.5px;
   font-weight: 500;
   text-align: left;
   background: transparent;
@@ -192,13 +192,13 @@
 
 .nav-module:hover {
   background: var(--crm-sidebar-hover);
-  color: #FFFFFF;
-  transform: translateX(2px);
+  color: #263548;
+  transform: translateX(1px);
 }
 
 .nav-group-active .nav-module {
   background: var(--crm-sidebar-active);
-  color: #60A5FA;
+  color: #263548;
   font-weight: 600;
 }
 
@@ -218,7 +218,7 @@
 }
 
 .nav-module-chevron {
-  color: #64748B;
+  color: #748297;
   transition: transform 200ms ease;
   flex-shrink: 0;
 }
@@ -249,14 +249,14 @@
 .nav-sub-link {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   width: 100%;
   height: 31px;
   padding: 0 8px;
   border-radius: 6px;
   color: var(--crm-sidebar-text);
-  font-size: 12.5px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -266,16 +266,16 @@
 }
 
 .nav-sub-link:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateX(2px);
+  color: #263548;
+  background: var(--crm-sidebar-hover);
+  transform: translateX(1px);
 }
 
 .nav-sub-link-active {
-  background: var(--crm-primary) !important;
-  color: #FFFFFF !important;
+  background: var(--crm-sidebar-active);
+  color: #263548;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  box-shadow: inset 2px 0 #8AA8D2;
 }
 
 .nav-count {
@@ -310,7 +310,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--crm-sidebar-text-bright);
+  color: #334155;
   font-size: 12.5px;
   font-weight: 600;
   min-width: 0;
@@ -344,7 +344,7 @@
   padding: 6px 9px;
   border-radius: 7px;
   border: 1px solid var(--crm-sidebar-border);
-  color: var(--crm-sidebar-text);
+  color: #526174;
   font-size: 11.5px;
   font-weight: 600;
   background: transparent;
@@ -354,9 +354,9 @@
 }
 
 .logout-button:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #EF4444;
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #B42318;
 }
 
 /* --------------------------------------------------------------------------

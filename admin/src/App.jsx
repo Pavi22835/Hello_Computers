@@ -12,7 +12,7 @@ import GeneralSettings from "./pages/Settings/GeneralSettings";
 import CustomerList from "./pages/Customers/CustomerList";
 import OrderList from "./pages/Orders/OrderList";
 import ServiceEnquiries from "./pages/ServiceEnquiries/ServiceEnquiries";
-import { CategoryPreview, ProductPreview } from "./pages/Master/ProductList";
+import { ProductPreview } from "./pages/Master/ProductList";
 import { request } from "./services/api";
 import { date, money } from "./utils/formatters";
 import { placeholderPages, sections } from "./routes/adminNavigation";
@@ -418,9 +418,7 @@ function App() {
           />
         )}
       </AdminLayout>
-      {viewing?.section === "categories"
-        ? <CategoryPreview category={viewing.item} onClose={() => setViewing(null)} />
-        : viewing && <ProductPreview product={viewing.item} onClose={() => setViewing(null)} />}
+      {viewing && <ProductPreview product={viewing.item} onClose={() => setViewing(null)} />}
     </>
   );
 }
