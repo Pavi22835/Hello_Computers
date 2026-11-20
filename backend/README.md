@@ -20,6 +20,14 @@ Express and Prisma API for the Hello Computers storefront and admin dashboard.
    npm run admin:create
    ```
 
+   To grant administrator access to one existing account without changing its password or creating a duplicate:
+
+   ```sh
+   npm run admin:promote -- inwebz@gmail.com --confirm
+   ```
+
+   This command requires an existing account, matches email case-insensitively, and refuses ambiguous matches. Run it only from a trusted backend environment with authorized database access. Public registration continues to create customer accounts only.
+
 5. Start the API with `npm run dev`. It listens on port 5000 by default.
 
 The admin password is never seeded with a default value. Keep `.env` private and use HTTPS plus a strong secret in production.

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
+import logo from "../../assets/logos/logo.jpeg";
 
 function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate, onLogout }) {
   const activeGroupId = navigationGroups.find((group) => group.sectionIds.includes(section))?.id ?? "";
@@ -11,7 +12,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
   return (
     <aside className="sidebar">
       <a className="brand" href="#" onClick={(event) => { event.preventDefault(); onNavigate("dashboard"); }}>
-        <span className="brand-mark">HC</span><span>Hello Computers<small>Store administration</small></span>
+        <img className="brand-logo" src={logo} alt="" /><span>Hello Computers<small>Store administration</small></span>
       </a>
       <p className="nav-caption">WORKSPACE</p>
       <nav className="sidebar-nav" aria-label="Admin sections">

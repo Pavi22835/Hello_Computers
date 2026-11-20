@@ -1,0 +1,217 @@
+.admin-login {
+  --login-ink: #172b4d;
+  --login-muted: #74839a;
+  --login-accent: #286de0;
+  --login-border: #dce5f0;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #e8f1ff 0, transparent 53%),
+    #f3f6fb;
+  color: var(--login-ink);
+}
+
+.admin-login__card {
+  display: flex;
+  width: min(100%, 440px);
+  min-height: 610px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  border: 1px solid #e4eaf2;
+  border-radius: 28px;
+  padding: 48px;
+  background: #fff;
+  box-shadow: 0 24px 70px #243a5a18;
+}
+
+.admin-login__logo {
+  display: block;
+  width: 104px;
+  height: 104px;
+  align-self: center;
+  border-radius: 18px;
+  object-fit: contain;
+}
+
+.admin-login__eyebrow {
+  margin: 3px 0 -12px;
+  color: #6984a8;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 1.8px;
+  text-align: center;
+}
+
+.admin-login__title {
+  margin: 0;
+  color: var(--login-ink);
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -.8px;
+  text-align: center;
+}
+
+.admin-login__copy {
+  margin: -13px 0 7px;
+  color: var(--login-muted);
+  font-size: 14px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.admin-login__field {
+  display: grid;
+  gap: 9px;
+  color: #354b68;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.admin-login__field > input,
+.admin-login__password > input {
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  border: 1px solid var(--login-border);
+  border-radius: 14px;
+  outline: 0;
+  padding: 0 16px;
+  color: var(--login-ink);
+  background: #fbfcfe;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 450;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+
+.admin-login__field > input::placeholder,
+.admin-login__password > input::placeholder {
+  color: #9aa8bb;
+}
+
+.admin-login__field > input:focus,
+.admin-login__password > input:focus {
+  border-color: #75a3ed;
+  background: #fff;
+  box-shadow: 0 0 0 4px #347be81a;
+}
+
+.admin-login__password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admin-login__password > input {
+  padding-right: 52px;
+}
+
+.admin-login__visibility {
+  position: absolute;
+  right: 7px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  color: #71829a;
+  background: transparent;
+  cursor: pointer;
+}
+
+.admin-login__visibility:hover {
+  color: var(--login-accent);
+  background: #edf4ff;
+}
+
+.admin-login__visibility:focus-visible,
+.admin-login__submit:focus-visible {
+  outline: 3px solid #6fa1f455;
+  outline-offset: 3px;
+}
+
+.admin-login__error {
+  border: 1px solid #f0d2d3;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #a33b43;
+  background: #fff5f5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-login__submit {
+  min-height: 54px;
+  margin-top: 5px;
+  border: 0;
+  border-radius: 15px;
+  padding: 0 20px;
+  color: #fff;
+  background: linear-gradient(105deg, #347be8, #235fc6);
+  box-shadow: 0 8px 18px #286de02b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  transition: box-shadow .15s, transform .15s, opacity .15s;
+}
+
+.admin-login__submit:hover:not(:disabled) {
+  box-shadow: 0 11px 22px #286de03a;
+  transform: translateY(-1px);
+}
+
+.admin-login__submit:disabled {
+  cursor: wait;
+  opacity: .7;
+}
+
+.admin-login__foot {
+  margin: auto 0 0;
+  padding-top: 9px;
+  color: #8795a9;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .admin-login {
+    padding: 20px 16px;
+  }
+
+  .admin-login__card {
+    min-height: 570px;
+    gap: 18px;
+    border-radius: 24px;
+    padding: 38px 28px 30px;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-login {
+    padding: 14px 12px;
+  }
+
+  .admin-login__card {
+    min-height: 550px;
+    padding: 32px 22px 26px;
+  }
+
+  .admin-login__title {
+    font-size: 27px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-login__field > input,
+  .admin-login__password > input,
+  .admin-login__submit {
+    transition: none;
+  }
+}

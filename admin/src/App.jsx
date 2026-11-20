@@ -3,6 +3,7 @@ import { Mail } from "lucide-react";
 import AdminLayout from "./components/layout/AdminLayout";
 import FeaturePlaceholder from "./components/common/FeaturePlaceholder";
 import { useDebounce } from "./hooks/useDebounce";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Categories from "./pages/Master/Categories";
 import ProductList from "./pages/Master/ProductList";
@@ -144,47 +145,6 @@ const configs = {
 
 function Status({ active, children }) {
   return <span className={`pill ${active ? "pill-green" : "pill-gray"}`}>{children || (active ? "Active" : "Inactive")}</span>;
-}
-
-function Login({ onLogin }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function submit(event) {
-    event.preventDefault();
-    setError("");
-    setBusy(true);
-    try {
-      const result = await request("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-      if (result.user.role !== "ADMIN") throw new Error("This account does not have administrator access.");
-      onLogin(result);
-    } catch (issue) {
-      setError(issue.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <main className="login-shell">
-      <form className="login-card" onSubmit={submit}>
-        <div className="brand-mark">HC</div>
-        <p className="eyebrow">HELLO COMPUTERS</p>
-        <h1>Welcome back</h1>
-        <p className="login-copy">Sign in with your administrator account to manage your store.</p>
-        {error && <div className="notice notice-error" role="alert">{error}</div>}
-        <label>Email address<input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-        <label>Password<input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-        <button className="primary-button login-button" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
-        <p className="login-foot">Administrator access only</p>
-      </form>
-    </main>
-  );
 }
 
 function App() {

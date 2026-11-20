@@ -4,6 +4,8 @@ import logo from "../../assets/images/logo.jpeg";
 import { whatsappLink } from "../../config/site";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 
+const adminUrl = import.meta.env.VITE_ADMIN_URL || "http://localhost:5174";
+
 const columns = [
   { title: "Explore", links: [["Home", "/"], ["About Us", "/about"], ["Products", "/products"], ["Categories", "/categories"]] },
   { title: "Support", links: [["Offers", "/offers"], ["Services", "/services"], ["Contact Us", "/contact"], ["My Orders", "/orders"]] },
@@ -48,7 +50,7 @@ function Footer() {
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-blue-100/50 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Hello Computers. All rights reserved.</p>
-          <p className="flex gap-5"><Link to="/admin" className="transition hover:text-white">Admin</Link><Link to="/privacy-policy" className="transition hover:text-white">Privacy Policy</Link><Link to="/terms" className="transition hover:text-white">Terms</Link></p>
+          <p className="flex gap-5"><a href={adminUrl} className="transition hover:text-white">Admin</a><Link to="/privacy-policy" className="transition hover:text-white">Privacy Policy</Link><Link to="/terms" className="transition hover:text-white">Terms</Link></p>
         </div>
       </div>
     </footer>

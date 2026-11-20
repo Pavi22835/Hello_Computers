@@ -27,19 +27,14 @@
   text-decoration: none;
 }
 
-.brand-mark {
-  display: grid;
+.brand-logo {
+  display: block;
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
-  place-items: center;
-  border-radius: 12px;
-  color: white;
-  background: linear-gradient(140deg, #337cf6, #1d5bd6);
-  box-shadow: 0 6px 16px #2466df45;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -.6px;
+  border-radius: 9px;
+  object-fit: contain;
+  background: #fff;
 }
 
 .brand small,
@@ -207,8 +202,7 @@
   letter-spacing: 1.5px;
 }
 
-.page-heading h1,
-.login-card h1 {
+.page-heading h1 {
   margin: 0;
   color: #17243b;
   font-size: 27px;
@@ -621,8 +615,7 @@ td small a:hover { text-decoration: underline; }
   gap: 13px 15px;
 }
 
-.form-grid label,
-.login-card label {
+.form-grid label {
   display: grid;
   gap: 6px;
   color: #526078;
@@ -635,7 +628,6 @@ td small a:hover { text-decoration: underline; }
 .form-grid input:not([type="checkbox"]),
 .form-grid textarea,
 .form-grid select,
-.login-card input,
 .filter-select {
   width: 100%;
   min-height: 36px;
@@ -652,7 +644,7 @@ td small a:hover { text-decoration: underline; }
 }
 
 .form-grid textarea { min-height: 75px; resize: vertical; }
-.form-grid input:focus, .form-grid textarea:focus, .form-grid select:focus, .login-card input:focus, .filter-select:focus { border-color: #6b9cf0; box-shadow: 0 0 0 3px #4383ed18; }
+.form-grid input:focus, .form-grid textarea:focus, .form-grid select:focus, .filter-select:focus { border-color: #6b9cf0; box-shadow: 0 0 0 3px #4383ed18; }
 .checkbox-field { display: flex !important; align-items: center; gap: 8px !important; min-height: 35px; }
 .checkbox-field input { width: 15px; height: 15px; accent-color: #286de0; }
 .field-help { color: #8f99a9; font-size: 9px; font-weight: 400; }
@@ -732,32 +724,6 @@ td small a:hover { text-decoration: underline; }
 .product-preview-copy h3 { margin: 0; color: #34425a; font-size: 11px; }
 .product-preview-copy p { margin: 6px 0 0; color: #778398; font-size: 11px; line-height: 1.7; white-space: pre-line; }
 
-.login-shell {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  padding: 24px;
-  background: radial-gradient(ellipse at 50% 20%, #edf4ff 0, #f7f9fc 45%, #f3f5f9 100%);
-}
-
-.login-card {
-  display: grid;
-  width: min(100%, 365px);
-  gap: 15px;
-  border: 1px solid #e8ecf2;
-  border-radius: 15px;
-  padding: 34px;
-  background: #fff;
-  box-shadow: 0 18px 55px #30456812;
-}
-
-.login-card .brand-mark { width: 44px; height: 44px; margin-bottom: 1px; border-radius: 14px; }
-.login-card .eyebrow { margin-bottom: -10px; }
-.login-card h1 { font-size: 24px; }
-.login-copy { margin: -8px 0 3px; color: #8390a3; font-size: 11px; line-height: 1.7; }
-.login-card input { min-height: 40px; margin-top: 1px; }
-.login-button { min-height: 41px; margin-top: 3px; }
-.login-foot { margin: 1px 0 0; color: #97a1b0; font-size: 9px; text-align: center; }
 .notice { border-radius: 7px; padding: 10px; font-size: 10px; line-height: 1.5; }
 .notice-error { border: 1px solid #f0d2d3; color: #a33b43; background: #fff5f5; }
 
@@ -1008,12 +974,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   letter-spacing: -.25px;
 }
 
-.brand-mark {
+.brand-logo {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #4488ef, #2364c5);
-  box-shadow: 0 6px 15px #0e162a45;
+  border-radius: 9px;
 }
 
 .brand small,
@@ -1204,8 +1168,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .page-content { width: min(1500px, 100%); padding: 34px 38px 60px; }
 .page-heading { align-items: flex-end; margin-bottom: 25px; }
 .eyebrow { margin-bottom: 9px; color: #607da4; font-size: 11px; letter-spacing: 1.2px; }
-.page-heading h1,
-.login-card h1 { color: #172b4d; font-size: 30px; font-weight: 700; letter-spacing: -.7px; }
+.page-heading h1 { color: #172b4d; font-size: 30px; font-weight: 700; letter-spacing: -.7px; }
 .page-heading p:not(.eyebrow) { margin-top: 8px; color: #6b7b91; font-size: 14px; line-height: 1.6; }
 .date-chip,
 .table-total { border-color: var(--crm-border); border-radius: 9px; padding: 9px 12px; color: #5e7088; font-size: 13px; }
@@ -1310,12 +1273,10 @@ td small { color: #76869b; font-size: 12px; }
 .icon-button { width: 36px; height: 36px; border-radius: 8px; }
 .icon-button:hover { color: #294f80; background: #f1f5fa; }
 .form-grid { gap: 17px 18px; }
-.form-grid label,
-.login-card label { gap: 7px; color: #465a75; font-size: 13px; font-weight: 600; }
+.form-grid label { gap: 7px; color: #465a75; font-size: 13px; font-weight: 600; }
 .form-grid input:not([type="checkbox"]),
 .form-grid textarea,
 .form-grid select,
-.login-card input,
 .filter-select,
 .resource-filters input,
 .resource-filters select,
@@ -1334,7 +1295,6 @@ td small { color: #76869b; font-size: 12px; }
 .form-grid input:focus,
 .form-grid textarea:focus,
 .form-grid select:focus,
-.login-card input:focus,
 .filter-select:focus,
 .resource-filters input:focus,
 .resource-filters select:focus { border-color: #6e9fe2; box-shadow: 0 0 0 3px #3c7bcb1c; }
@@ -1470,14 +1430,6 @@ td small { color: #76869b; font-size: 12px; }
 .product-preview-copy h3 { color: #304662; font-size: 15px; }
 .product-preview-copy p { color: #5e7088; font-size: 13px; }
 
-.login-shell { background: radial-gradient(ellipse at 50% 15%, #e8f1ff 0, #f5f8fc 45%, #edf2f8 100%); }
-.login-card { width: min(100%, 430px); gap: 18px; border-color: var(--crm-border); border-radius: 18px; padding: 40px; box-shadow: 0 22px 60px #253c5d16; }
-.login-card .brand-mark { width: 48px; height: 48px; }
-.login-card h1 { font-size: 28px; }
-.login-copy { color: #687b94; font-size: 14px; line-height: 1.65; }
-.login-card input { min-height: 46px; }
-.login-button { min-height: 46px; margin-top: 5px; }
-.login-foot { color: #72839a; font-size: 12px; }
 .notice { border-radius: 9px; padding: 12px; font-size: 13px; }
 
 @media (max-width: 1180px) {
@@ -1508,7 +1460,7 @@ td small { color: #76869b; font-size: 12px; }
     padding: 13px 14px 10px;
   }
   .brand { min-height: 42px; padding: 0 3px; }
-  .brand-mark { width: 36px; height: 36px; }
+  .brand-logo { width: 36px; height: 36px; }
   .nav-caption { margin: 16px 8px 7px; }
   .sidebar nav {
     display: grid;
@@ -1573,7 +1525,6 @@ td small { color: #76869b; font-size: 12px; }
   .orders-action-row select { max-width: none; flex: 1; }
   .product-preview { padding: 18px; }
   .product-preview-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .login-card { padding: 28px 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
