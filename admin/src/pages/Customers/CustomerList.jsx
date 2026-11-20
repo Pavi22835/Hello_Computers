@@ -1,18 +1,56 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, RefreshCw, Search, UserCheck, Users, UserX } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CircleX,
+  Eye,
+  FilterX,
+  RefreshCw,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { useDebounce } from "../../hooks/useDebounce";
 import "../../styles/Admin.css";
+import "../../styles/Customers.css";
 import CustomerDetails from "./CustomerDetails";
 import { dateTime, money } from "../../utils/formatters";
 
-function CustomerStatus({ active }) {
-  return <span className={`orders-pill ${active ? "orders-pill-active" : "orders-pill-muted"}`}>{active ? "Active" : "Inactive"}</span>;
+const unavailableCustomerTypes = {
+  cancelled: ["cancelledOrderCount", "cancelledOrders"],
+  abandoned: ["abandonedCartCount", "abandonedCartItemsCount", "abandonedCart"],
+};
+
+function getCustomerInitials(name = "") {
+  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "?";
 }
 
-function CustomersManagement({ api, toast }) {
+function getCustomerTypeCount(customer, type) {
+  const value = type === "cancelled"
+    ? customer.cancelledOrderCount ?? customer.cancelledOrders
+    : customer.abandonedCartCount ?? customer.abandonedCartItemsCount ?? customer.abandonedCart;
+  if (Array.isArray(value)) return value.length;
+  if (typeof value === "boolean") return value ? 1 : 0;
+  return Number(value) || 0;
+}
+
+function CustomerAvatar({ name }) {
+  const colorIndex = [...(name || "")].reduce((total, character) => total + character.charCodeAt(0), 0) % 5;
+  return <span className={`customer-avatar customer-avatar-${colorIndex}`} aria-hidden="true">{getCustomerInitials(name)}</span>;
+}
+
+function CustomerStatus({ active }) {
+  return <span className={`customer-account-status ${active ? "is-active" : "is-inactive"}`}><span />{active ? "Active" : "Inactive"}</span>;
+}
+
+function CustomerList({ api, toast }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [status, setStatus] = useState("all");
+  const [customerType, setCustomerType] = useState("all");
   const [registeredFrom, setRegisteredFrom] = useState("");
   const [registeredTo, setRegisteredTo] = useState("");
   const [sortBy, setSortBy] = useState("registered");
@@ -93,6 +131,18 @@ function CustomersManagement({ api, toast }) {
     setPage(1);
   }
 
+  function clearFilters() {
+    setSearch("");
+    setStatus("all");
+    setCustomerType("all");
+    setRegisteredFrom("");
+    setRegisteredTo("");
+    setSortBy("registered");
+    setSortOrder("desc");
+    setPageSize(20);
+    resetPage();
+  }
+
   function closeDetails() {
     if (actionBusy) return;
     detailSequence.current += 1;
@@ -133,77 +183,158 @@ function CustomersManagement({ api, toast }) {
 
   const customers = data.items || [];
   const summary = data.summary || {};
+  const hasCancelledMetrics = customers.some((customer) => unavailableCustomerTypes.cancelled.some((field) => Object.prototype.hasOwnProperty.call(customer, field)));
+  const hasAbandonedCartMetrics = customers.some((customer) => unavailableCustomerTypes.abandoned.some((field) => Object.prototype.hasOwnProperty.call(customer, field)));
+  const cancelledCount = hasCancelledMetrics ? customers.filter((customer) => getCustomerTypeCount(customer, "cancelled") > 0).length : "—";
+  const abandonedCartCount = hasAbandonedCartMetrics ? customers.filter((customer) => getCustomerTypeCount(customer, "abandoned") > 0).length : "—";
+  const orderedCount = customers.filter((customer) => Number(customer.totalOrders) > 0).length;
+  const nonOrderedCount = customers.length - orderedCount;
   const summaryCards = [
-    { label: "Customers", value: summary.totalCustomers ?? 0, icon: Users },
-    { label: "Active accounts", value: summary.activeCustomers ?? 0, icon: UserCheck },
-    { label: "Inactive accounts", value: summary.inactiveCustomers ?? 0, icon: UserX },
+    { label: "Total Customers", value: summary.totalCustomers ?? 0, caption: "Matching account and date filters", icon: Users, tone: "blue" },
+    { label: "Non-Ordered Customers", value: nonOrderedCount, caption: "On this page", icon: UserRound, tone: "slate" },
+    { label: "Ordered Customers", value: orderedCount, caption: "On this page", icon: ShoppingBag, tone: "green" },
+    { label: "Cancelled Customers", value: cancelledCount, caption: hasCancelledMetrics ? "On this page" : "Not provided by current API", icon: CircleX, tone: "red" },
+    { label: "Abandoned Cart Customers", value: abandonedCartCount, caption: hasAbandonedCartMetrics ? "On this page" : "Not provided by current API", icon: ShoppingCart, tone: "amber" },
   ];
 
+  const unavailableType = (customerType === "cancelled" && !hasCancelledMetrics)
+    || (customerType === "abandoned" && !hasAbandonedCartMetrics);
+  const visibleCustomers = unavailableType ? [] : customers.filter((customer) => {
+    if (customerType === "ordered") return Number(customer.totalOrders) > 0;
+    if (customerType === "non-ordered") return Number(customer.totalOrders) === 0;
+    if (customerType === "cancelled") return getCustomerTypeCount(customer, "cancelled") > 0;
+    if (customerType === "abandoned") return getCustomerTypeCount(customer, "abandoned") > 0;
+    return true;
+  });
+  const hasFilters = Boolean(search || status !== "all" || customerType !== "all" || registeredFrom || registeredTo);
+
   return (
-    <section className="customers-manager">
-      <div className="page-heading">
+    <section className="customers-page">
+      <header className="customers-heading">
         <div>
           <p className="eyebrow">CUSTOMER RELATIONSHIPS</p>
           <h1>Customers</h1>
-          <p>Review customer profiles, account activity, purchases, and requests.</p>
+          <p>Understand customer activity, purchases, and account details.</p>
         </div>
-        <button type="button" className="secondary-button" onClick={loadCustomers} disabled={loading}>
-          <RefreshCw size={15} /> Refresh
+        <button type="button" className="secondary-button customers-refresh" onClick={loadCustomers} disabled={loading}>
+          <RefreshCw size={15} aria-hidden="true" />Refresh
         </button>
-      </div>
+      </header>
 
-      <div className="orders-summary-grid customer-summary-grid" aria-label="Customer summary">
-        {summaryCards.map(({ label, value, icon: Icon }) => (
-          <article key={label}>
-            <span className="summary-card-icon"><Icon size={20} strokeWidth={2.2} aria-hidden="true" /></span>
-            <span className="summary-card-label">{label}</span>
+      <div className="customer-metrics-grid" aria-label="Customer summary">
+        {summaryCards.map(({ label, value, caption, icon: Icon, tone }) => (
+          <article className={`customer-metric-card customer-metric-${tone}`} key={label}>
+            <span className="customer-metric-icon"><Icon size={18} strokeWidth={2} aria-hidden="true" /></span>
+            <span className="customer-metric-label">{label}</span>
             <strong>{value}</strong>
+            <small>{caption}</small>
           </article>
         ))}
       </div>
+      <p className="customer-data-note">Ordered and non-ordered totals reflect the current page. Cancelled-order and abandoned-cart totals are not included in the existing Customers API response.</p>
 
-      <div className="orders-panel">
-        <div className="orders-filter-grid customer-filter-grid">
-          <label className="orders-search"><span>Search</span><div><Search size={16} /><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Name, email, or phone" /></div></label>
-          <label>Status<select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }}><option value="all">All accounts</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
-          <label>Registered from<input type="date" value={registeredFrom} onChange={(event) => { setRegisteredFrom(event.target.value); resetPage(); }} /></label>
-          <label>Registered to<input type="date" value={registeredTo} onChange={(event) => { setRegisteredTo(event.target.value); resetPage(); }} /></label>
-          <label>Sort by<select value={sortBy} onChange={(event) => { setSortBy(event.target.value); resetPage(); }}><option value="registered">Registration date</option><option value="name">Name</option><option value="email">Email</option><option value="activity">Last activity</option><option value="status">Account status</option></select></label>
-          <label>Direction<select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); resetPage(); }}><option value="desc">Descending</option><option value="asc">Ascending</option></select></label>
-          <label>Rows<select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); resetPage(); }}><option value={10}>10</option><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option></select></label>
+      <section className="customer-directory" aria-label="Customer list">
+        <div className="customer-list-heading">
+          <div>
+            <h2>Customer directory</h2>
+            <p>{visibleCustomers.length} shown · {data.pagination?.total ?? customers.length} customers match the current account and date filters</p>
+          </div>
+          {hasFilters && <button type="button" className="customer-clear-filters" onClick={clearFilters}><FilterX size={15} aria-hidden="true" />Clear filters</button>}
         </div>
 
+        <div className="customer-filter-grid">
+          <label className="customer-search-field">
+            <span>Search customers</span>
+            <span className="customer-search-input"><Search size={16} aria-hidden="true" /><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Name, email, or phone" /></span>
+          </label>
+          <label>
+            <span>From date</span>
+            <span className="customer-date-input"><CalendarDays size={15} aria-hidden="true" /><input type="date" value={registeredFrom} max={registeredTo || undefined} onChange={(event) => { setRegisteredFrom(event.target.value); resetPage(); }} /></span>
+          </label>
+          <label>
+            <span>To date</span>
+            <span className="customer-date-input"><CalendarDays size={15} aria-hidden="true" /><input type="date" value={registeredTo} min={registeredFrom || undefined} onChange={(event) => { setRegisteredTo(event.target.value); resetPage(); }} /></span>
+          </label>
+          <label>
+            <span>Customer type</span>
+            <select value={customerType} onChange={(event) => { setCustomerType(event.target.value); resetPage(); }}>
+              <option value="all">All customers</option>
+              <option value="ordered">Ordered</option>
+              <option value="non-ordered">Non-Ordered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="abandoned">Abandoned Cart</option>
+            </select>
+          </label>
+          <label>
+            <span>Account status</span>
+            <select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }}>
+              <option value="all">All accounts</option><option value="active">Active</option><option value="inactive">Inactive</option>
+            </select>
+          </label>
+          <label>
+            <span>Sort by</span>
+            <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); resetPage(); }}>
+              <option value="registered">Registration date</option><option value="name">Name</option><option value="email">Email</option><option value="activity">Last activity</option><option value="status">Account status</option>
+            </select>
+          </label>
+          <label>
+            <span>Direction</span>
+            <select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); resetPage(); }}>
+              <option value="desc">Descending</option><option value="asc">Ascending</option>
+            </select>
+          </label>
+          <label>
+            <span>Rows</span>
+            <select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); resetPage(); }}>
+              <option value={10}>10</option><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option>
+            </select>
+          </label>
+        </div>
+
+        {customerType === "cancelled" && !hasCancelledMetrics && <p className="customer-filter-notice" role="status">Cancelled-order customer classification is not available in the current Customers API.</p>}
+        {customerType === "abandoned" && !hasAbandonedCartMetrics && <p className="customer-filter-notice" role="status">Abandoned-cart customer classification is not available in the current Customers API.</p>}
         {error && <div className="notice notice-error orders-error" role="alert">{error}</div>}
-        {loading ? <div className="table-message">Loading customers…</div> : customers.length === 0 ? (
-          <div className="empty-state"><Users size={25} aria-hidden="true" /><h3>No matching customers</h3><p>Change your search or filters to see other customers.</p></div>
+
+        {loading ? <div className="customer-table-message">Loading customers…</div> : visibleCustomers.length === 0 ? (
+          <div className="customer-empty-state">
+            <span><Users size={22} aria-hidden="true" /></span>
+            <h3>{unavailableType ? "Customer data unavailable" : "No matching customers"}</h3>
+            <p>{unavailableType ? "This filter needs fields that the current Customers API does not provide." : "Try changing your search or filters to see other customers."}</p>
+            {hasFilters && <button type="button" className="secondary-button" onClick={clearFilters}>Clear filters</button>}
+          </div>
         ) : (
-          <div className="table-scroll">
-            <table className="orders-table customers-table">
-              <thead><tr><th>Customer</th><th>Phone</th><th>Orders</th><th>Purchase amount</th><th>Registered</th><th>Last activity</th><th>Account</th><th>Profile</th></tr></thead>
+          <div className="customer-table-scroll">
+            <table className="customer-table">
+              <thead>
+                <tr><th>Customer</th><th>Email</th><th>Phone</th><th>Total orders</th><th>Total spent</th><th>Last order date</th><th>Customer status</th><th>Actions</th></tr>
+              </thead>
               <tbody>
-                {customers.map((customer) => (
-                  <tr key={customer.id}>
-                    <td><strong>{customer.name}</strong><small>{customer.email}</small></td>
-                    <td>{customer.phone || "—"}</td>
-                    <td>{customer.totalOrders}</td>
-                    <td className="orders-amount">{money(customer.totalSpent)}</td>
-                    <td>{dateTime(customer.createdAt)}</td>
-                    <td>{dateTime(customer.lastActivityAt)}</td>
-                    <td><CustomerStatus active={customer.isActive} /></td>
-                    <td><button type="button" className="row-view" onClick={() => loadCustomerDetails(customer.id)} aria-label={`View ${customer.name}`} title="View customer profile"><Eye size={16} /></button></td>
-                  </tr>
-                ))}
+                {visibleCustomers.map((customer) => {
+                  const lastOrderAt = customer.lastOrderAt || customer.lastOrderDate;
+                  return (
+                    <tr key={customer.id}>
+                      <td><span className="customer-identity"><CustomerAvatar name={customer.name} /><strong>{customer.name}</strong></span></td>
+                      <td className="customer-email">{customer.email}</td>
+                      <td>{customer.phone || "—"}</td>
+                      <td><span className="customer-order-count">{customer.totalOrders ?? 0}</span></td>
+                      <td className="customer-spent">{money(customer.totalSpent)}</td>
+                      <td title={lastOrderAt ? undefined : "Not provided by the current Customers API"}>{lastOrderAt ? dateTime(lastOrderAt) : "—"}</td>
+                      <td><CustomerStatus active={customer.isActive} /></td>
+                      <td><button type="button" className="customer-view-button" onClick={() => loadCustomerDetails(customer.id)} aria-label={`View details for ${customer.name}`} title="View details"><Eye size={16} aria-hidden="true" /><span>View</span></button></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        {data.pagination?.totalPages > 1 && <div className="admin-pagination"><span>Page {data.pagination.page} of {data.pagination.totalPages} · {data.pagination.total} customers</span><div><button type="button" className="secondary-button" disabled={page <= 1 || loading} onClick={() => setPage((current) => current - 1)}><ChevronLeft size={15} /> Previous</button><button type="button" className="secondary-button" disabled={page >= data.pagination.totalPages || loading} onClick={() => setPage((current) => current + 1)}>Next <ChevronRight size={15} /></button></div></div>}
-      </div>
+        {data.pagination?.totalPages > 1 && <div className="customer-pagination"><span>Page {data.pagination.page} of {data.pagination.totalPages} · {data.pagination.total} customers</span><div><button type="button" className="secondary-button" disabled={page <= 1 || loading} onClick={() => setPage((current) => current - 1)}><ChevronLeft size={15} aria-hidden="true" />Previous</button><button type="button" className="secondary-button" disabled={page >= data.pagination.totalPages || loading} onClick={() => setPage((current) => current + 1)}>Next<ChevronRight size={15} aria-hidden="true" /></button></div></div>}
+      </section>
 
       <CustomerDetails selectedCustomer={selectedCustomer} detailLoading={detailLoading} actionBusy={actionBusy} onClose={closeDetails} onToggleAccountStatus={toggleAccountStatus} />
     </section>
   );
 }
 
-export default CustomersManagement;
+export default CustomerList;
