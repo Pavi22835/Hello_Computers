@@ -13,7 +13,7 @@ The admin app listens on port 5174 so it can run alongside the customer frontend
 
 The dashboard uses an expiring bearer token and only permits users with the `ADMIN` role. It supports dashboard metrics, product and category management, orders, customers, service enquiries, offers, services, store settings, and customer enquiries.
 
-The source is organized under `src/components`, `src/pages`, `src/routes`, `src/services`, `src/hooks`, `src/utils`, `src/styles`, and `src/assets`. Menu entries for analytics, brands, subcategories, banners, coupons, messaging, reports, profile, roles, and activity logs are explicit placeholders because those features are not implemented by the existing API. They do not use mock data or submit operations.
+The source is organized under `src/components`, `src/pages`, `src/routes`, `src/services`, `src/hooks`, `src/utils`, `src/styles`, and `src/assets`. Menu entries for analytics, brands, subcategories, banners, coupons, messaging, reports, and profile are explicit placeholders because those features are not implemented by the existing API. They do not use mock data or submit operations.
 
 ## Production configuration
 
