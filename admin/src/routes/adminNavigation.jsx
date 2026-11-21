@@ -10,6 +10,7 @@ import {
   Megaphone,
   MessageCircle,
   Package,
+  PackagePlus,
   Percent,
   Settings,
   Tag,
@@ -30,7 +31,8 @@ import AdminProfile from "../pages/Settings/AdminProfile";
 export const sections = [
   { id: "dashboard", label: "Overview", icon: Home },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "products", label: "Products", icon: Package },
+  { id: "add-product", label: "Add Product", icon: PackagePlus },
+  { id: "products", label: "Product List", icon: Package },
   { id: "categories", label: "Categories", icon: Layers },
   { id: "brands", label: "Brands", icon: Tag },
   { id: "subcategories", label: "Subcategories", icon: GitBranch },
@@ -51,14 +53,14 @@ export const sections = [
 
 export const navigationGroups = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, sectionIds: ["dashboard", "analytics"] },
-  { id: "master", label: "Master", icon: Package, sectionIds: ["products", "categories", "brands", "subcategories", "banners"] },
+  { id: "master", label: "Master", icon: Package, sectionIds: ["add-product", "products", "categories", "brands", "subcategories", "banners"] },
   { id: "orders", label: "Orders", icon: ClipboardList, sectionIds: ["orders"] },
   { id: "customers", label: "Customers", icon: Users, sectionIds: ["customers"] },
-  { id: "marketing", label: "Marketing", icon: Megaphone, sectionIds: ["offers", "coupons", "whatsapp"] },
-  { id: "services", label: "Services", icon: Wrench, sectionIds: ["services", "service-enquiries"] },
+  // { id: "marketing", label: "Marketing", icon: Megaphone, sectionIds: ["offers", "coupons", "whatsapp"] },
+  // { id: "services", label: "Services", icon: Wrench, sectionIds: ["services", "service-enquiries"] },
   { id: "enquiries", label: "Enquiries", icon: Mail, sectionIds: ["enquiries"] },
   { id: "reports", label: "Reports", icon: BarChart3, sectionIds: ["sales-reports", "customer-reports"] },
-  { id: "settings", label: "Settings", icon: Settings, sectionIds: ["settings", "admin-profile"] },
+  // { id: "settings", label: "Settings", icon: Settings, sectionIds: ["settings", "admin-profile"] },
 ];
 
 export const placeholderPages = {

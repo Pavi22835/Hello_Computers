@@ -76,8 +76,23 @@ function BrandLogoField({ brand, onLogoChange, onRemoveLogo }) {
   const hasLogo = Boolean(brand.imageUrl);
   return (
     <div className="brand-logo-field">
-      <div className={`brand-logo-preview ${hasLogo ? "has-logo" : ""}`}>
-        {hasLogo ? <img src={brand.imageUrl} alt="Brand logo preview" /> : <div><ImagePlus size={27} aria-hidden="true" /><span>Logo preview</span></div>}
+      <div
+        className={`brand-logo-preview ${hasLogo ? "has-logo" : ""}`}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const file = event.dataTransfer.files?.[0];
+          if (file) onLogoChange(file);
+        }}
+      >
+        {hasLogo ? (
+          <img src={brand.imageUrl} alt="Brand logo preview" />
+        ) : (
+          <div>
+            <ImagePlus size={40} aria-hidden="true" />
+            <span>Logo preview</span>
+          </div>
+        )}
       </div>
       {brand.logoFileName && <p className="brand-logo-filename" title={brand.logoFileName}>{brand.logoFileName}</p>}
       <div className="brand-logo-actions">
@@ -115,7 +130,7 @@ function BrandForm({ brand, editing, onChange, onLogoChange, onRemoveLogo, onClo
   }
 
   return (
-    <section className="brands-page">
+    <form className="brands-page" onSubmit={onSubmit}>
       <nav className="brands-breadcrumbs" aria-label="Breadcrumb">
         <button type="button" onClick={onClose}><ArrowLeft size={15} aria-hidden="true" /> Brands</button>
         <span aria-hidden="true">/</span>
@@ -123,76 +138,73 @@ function BrandForm({ brand, editing, onChange, onLogoChange, onRemoveLogo, onClo
       </nav>
 
       <header className="brands-heading">
-        <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+        <div className="brand-editor-title">
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>{editing ? "Edit Brand" : "Add Brand"}</h1>
           <p>{editing ? "Update the brand details below." : "Create a brand for your product catalog."}</p>
+        </div>
+        <div className="brand-editor-header-actions">
+          <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
+          <button type="submit" className="primary-button">{editing ? "Update Brand" : "Save Brand"}</button>
         </div>
       </header>
 
       <BrandPreviewNotice />
 
-      <form className="brand-editor-form" onSubmit={onSubmit}>
-        <div className="brand-form-grid">
-          <section className="brand-form-card">
-            <div className="brand-section-heading">
-              <span className="brand-section-icon"><Tag size={18} aria-hidden="true" /></span>
-              <div><h2>Brand information</h2><p>Set the name and details customers will see.</p></div>
+      <div className="brand-form-grid">
+        <section className="brand-form-card">
+          <div className="brand-section-heading">
+            <span className="brand-section-icon"><Tag size={18} aria-hidden="true" /></span>
+            <div><h2>Brand information</h2><p>Set the name and details customers will see.</p></div>
+          </div>
+
+          <div className="brand-fields-stack">
+            <label className="brand-field">
+              Brand Name
+              <input autoFocus required value={brand.name} onChange={(event) => changeName(event.target.value)} placeholder="e.g. Northstar" />
+            </label>
+
+            <label className="brand-field">
+              Slug
+              <input required value={brand.slug} onChange={(event) => {
+                setSlugEdited(true);
+                onChange("slug", slugify(event.target.value));
+              }} placeholder="e.g. northstar" />
+              <small>Generated from the brand name. You can edit it.</small>
+            </label>
+
+            <label className="brand-field">
+              Description
+              <textarea rows="5" value={brand.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Describe this brand." />
+            </label>
+          </div>
+        </section>
+
+        <section className="brand-form-card brand-settings-card">
+          <div className="brand-section-heading">
+            <span className="brand-section-icon"><Building2 size={18} aria-hidden="true" /></span>
+            <div><h2>Brand logo & settings</h2><p>Upload a logo and choose its visibility.</p></div>
+          </div>
+
+          <BrandLogoField brand={brand} onLogoChange={onLogoChange} onRemoveLogo={onRemoveLogo} />
+
+          <div className="brand-status-setting">
+            <div>
+              <h3><Check size={16} aria-hidden="true" />Status</h3>
+              <p>Choose whether this brand is available in your store.</p>
             </div>
-
-            <div className="brand-fields-stack">
-              <label className="brand-field">
-                Brand Name
-                <input autoFocus required value={brand.name} onChange={(event) => changeName(event.target.value)} placeholder="e.g. Northstar" />
-              </label>
-
-              <label className="brand-field">
-                Slug
-                <input required value={brand.slug} onChange={(event) => {
-                  setSlugEdited(true);
-                  onChange("slug", slugify(event.target.value));
-                }} placeholder="e.g. northstar" />
-                <small>Generated from the brand name. You can edit it.</small>
-              </label>
-
-              <label className="brand-field">
-                Description
-                <textarea rows="5" value={brand.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Describe this brand." />
-              </label>
+            <div className="brand-status-control" role="group" aria-label="Brand status">
+              <button type="button" className={brand.isActive ? "is-selected" : ""} aria-pressed={Boolean(brand.isActive)} onClick={() => onChange("isActive", true)}>
+                <span className="brand-status-dot brand-status-dot-active" />Active
+              </button>
+              <button type="button" className={!brand.isActive ? "is-selected" : ""} aria-pressed={!brand.isActive} onClick={() => onChange("isActive", false)}>
+                <span className="brand-status-dot brand-status-dot-inactive" />Inactive
+              </button>
             </div>
-          </section>
-
-          <section className="brand-form-card brand-settings-card">
-            <div className="brand-section-heading">
-              <span className="brand-section-icon"><Building2 size={18} aria-hidden="true" /></span>
-              <div><h2>Brand logo & settings</h2><p>Upload a logo and choose its visibility.</p></div>
-            </div>
-
-            <BrandLogoField brand={brand} onLogoChange={onLogoChange} onRemoveLogo={onRemoveLogo} />
-
-            <div className="brand-status-setting">
-              <div>
-                <h3><Check size={16} aria-hidden="true" />Status</h3>
-                <p>Choose whether this brand is available in your store.</p>
-              </div>
-              <div className="brand-status-control" role="group" aria-label="Brand status">
-                <button type="button" className={brand.isActive ? "is-selected" : ""} aria-pressed={Boolean(brand.isActive)} onClick={() => onChange("isActive", true)}>
-                  <span className="brand-status-dot brand-status-dot-active" />Active
-                </button>
-                <button type="button" className={!brand.isActive ? "is-selected" : ""} aria-pressed={!brand.isActive} onClick={() => onChange("isActive", false)}>
-                  <span className="brand-status-dot brand-status-dot-inactive" />Inactive
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <footer className="brand-form-actions">
-          <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
-          <button type="submit" className="primary-button">{editing ? "Update Brand" : "Save Brand"}</button>
-        </footer>
-      </form>
-    </section>
+          </div>
+        </section>
+      </div>
+    </form>
   );
 }
 
@@ -283,7 +295,7 @@ function Brands() {
     <section className="brands-page">
       <header className="brands-heading brands-list-heading">
         <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>Brands</h1>
           <p>Manage the brands in your product catalog.</p>
         </div>
@@ -339,9 +351,9 @@ function Brands() {
                     <td><span className="brand-created"><CalendarDays size={15} aria-hidden="true" />{date(brand.createdAt)}</span></td>
                     <td>
                       <div className="brand-row-actions">
-                        <button type="button" aria-label={`View ${brand.name}`} title="View" onClick={() => setSelectedBrand(brand)}><Eye size={16} aria-hidden="true" /></button>
-                        <button type="button" aria-label={`Edit ${brand.name}`} title="Edit" onClick={() => startEdit(brand)}><Pencil size={16} aria-hidden="true" /></button>
-                        <button type="button" aria-label={`Delete ${brand.name}`} title="Delete" onClick={() => removeBrand(brand)}><Trash2 size={16} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`View ${brand.name}`} title="View" onClick={() => setSelectedBrand(brand)}><Eye size={22} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`Edit ${brand.name}`} title="Edit" onClick={() => startEdit(brand)}><Pencil size={22} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`Delete ${brand.name}`} title="Delete" onClick={() => removeBrand(brand)}><Trash2 size={22} aria-hidden="true" /></button>
                       </div>
                     </td>
                   </tr>

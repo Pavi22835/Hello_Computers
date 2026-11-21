@@ -6,7 +6,9 @@ import { useDebounce } from "./hooks/useDebounce";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Categories from "./pages/Master/Categories";
+import AddCategory from "./pages/Master/AddCategory";
 import ProductList from "./pages/Master/ProductList";
+import AddProduct from "./pages/Master/AddProduct";
 import OffersCoupons from "./pages/Marketing/OffersCoupons";
 import GeneralSettings from "./pages/Settings/GeneralSettings";
 import CustomerList from "./pages/Customers/CustomerList";
@@ -15,6 +17,7 @@ import ServiceEnquiries from "./pages/ServiceEnquiries/ServiceEnquiries";
 import { ProductPreview } from "./pages/Master/ProductList";
 import { request } from "./services/api";
 import { date, money } from "./utils/formatters";
+import { normalizeProductList, normalizePagination } from "./utils/normalize";
 import { placeholderPages, sections } from "./routes/adminNavigation";
 import "./styles/Admin.css";
 
@@ -24,30 +27,58 @@ const placeholderPagesWithCoupons = {
   coupons: <FeaturePlaceholder title="Coupons" />,
 };
 
+const productDefaults = {
+  name: "",
+  model: "",
+  brand: "",
+  price: "",
+  discountPrice: "",
+  stock: 0,
+  categoryId: "",
+  badge: "",
+  description: "",
+  specifications: "",
+  imageUrl: "",
+  images: [],
+  mainImageFile: null,
+  galleryFiles: [null, null, null],
+  isFeatured: false,
+  isActive: true,
+};
+
+const categoryDefaults = {
+  name: "",
+  slug: "",
+  imageUrl: "",
+  imageFiles: [],
+  description: "",
+  isActive: true,
+};
+
+const productFields = [
+  { name: "name", label: "Product name", required: true },
+  { name: "model", label: "Model" },
+  { name: "brand", label: "Brand" },
+  { name: "price", label: "Price (₹)", type: "number", min: 0.01, step: "0.01", required: true },
+  { name: "discountPrice", label: "Discount price (₹)", type: "number", min: 0.01, step: "0.01", help: "Leave blank when the product has no discount." },
+  { name: "stock", label: "Stock", type: "number", min: 0, step: "1" },
+  { name: "categoryId", label: "Category", type: "category" },
+  { name: "badge", label: "Badge" },
+  { name: "specifications", label: "Specifications", type: "textarea", wide: true },
+  { name: "description", label: "Description", type: "textarea", wide: true },
+  { name: "isFeatured", label: "Featured product", type: "checkbox", wide: true },
+  { name: "isActive", label: "Active on storefront", type: "checkbox", wide: true },
+];
+
 const configs = {
   products: {
-    title: "Products",
+    title: "Product List",
     singular: "product",
     endpoint: "/products",
     listEndpoint: "/products/admin",
+    createLabel: "Add Product",
     viewable: true,
-    fields: [
-      { name: "name", label: "Product name", required: true },
-      { name: "model", label: "Model" },
-      { name: "brand", label: "Brand" },
-      { name: "price", label: "Price (₹)", type: "number", min: 0.01, step: "0.01", required: true },
-      { name: "discountPrice", label: "Discount price (₹)", type: "number", min: 0.01, step: "0.01", help: "Leave blank when the product has no discount." },
-      { name: "stock", label: "Stock", type: "number", min: 0, step: "1" },
-      { name: "categoryId", label: "Category", type: "category" },
-      { name: "imageUrl", label: "Primary image URL" },
-      { name: "imageFiles", label: "Upload product images", type: "image-upload", wide: true, help: "Choose up to 10 JPEG, PNG, WebP, or AVIF images (8 MB each)." },
-      { name: "images", label: "Product image URLs", type: "textarea", help: "One image URL per line. Uploaded images will be added when you save.", wide: true },
-      { name: "badge", label: "Badge" },
-      { name: "specifications", label: "Specifications", type: "textarea", wide: true },
-      { name: "description", label: "Description", type: "textarea", wide: true },
-      { name: "isFeatured", label: "Featured product", type: "checkbox", wide: true },
-      { name: "isActive", label: "Active on storefront", type: "checkbox", wide: true },
-    ],
+    fields: productFields,
     columns: [
       { label: "Product", render: (item) => <><strong>{item.name}</strong><small>{[item.model, item.brand].filter(Boolean).join(" · ") || "No model or brand"}</small></> },
       { label: "Category", render: (item) => item.category?.name || "Uncategorized" },
@@ -56,13 +87,25 @@ const configs = {
       { label: "Featured", render: (item) => item.isFeatured ? <Status active>Featured</Status> : "—" },
       { label: "Status", render: (item) => <Status active={item.isActive} /> },
     ],
-    defaults: { name: "", model: "", brand: "", price: "", discountPrice: "", stock: 0, categoryId: "", imageUrl: "", imageFiles: [], images: "", badge: "", specifications: "", description: "", isFeatured: false, isActive: true },
+    defaults: productDefaults,
+  },
+  "add-product": {
+    title: "Add Product",
+    singular: "product",
+    endpoint: "/products",
+    listEndpoint: "/products/admin",
+    createLabel: "Add Product",
+    viewable: false,
+    fields: productFields,
+    columns: [],
+    defaults: productDefaults,
   },
   categories: {
     title: "Categories",
     singular: "category",
     endpoint: "/categories",
     listEndpoint: "/categories/admin",
+    createLabel: "Add Category",
     viewable: true,
     fields: [
       { name: "name", label: "Category name", required: true },
@@ -78,7 +121,43 @@ const configs = {
       { label: "Products", render: (item) => item._count?.products ?? "—" },
       { label: "Status", render: (item) => <Status active={item.isActive} /> },
     ],
-    defaults: { name: "", slug: "", imageUrl: "", imageFiles: [], description: "", isActive: true },
+    defaults: categoryDefaults,
+  },
+  "categories/add": {
+    title: "Add Category",
+    singular: "category",
+    endpoint: "/categories",
+    listEndpoint: "/categories/admin",
+    createLabel: "Add Category",
+    viewable: false,
+    fields: [
+      { name: "name", label: "Category name", required: true },
+      { name: "slug", label: "URL slug", help: "Leave blank to generate from the category name." },
+      { name: "imageUrl", label: "Image URL" },
+      { name: "imageFiles", label: "Upload category image", type: "image-upload", multiple: false, wide: true, help: "Choose one JPEG, PNG, WebP, or AVIF image (8 MB max)." },
+      { name: "description", label: "Description", type: "textarea", wide: true },
+      { name: "isActive", label: "Active on storefront", type: "checkbox", wide: true },
+    ],
+    columns: [],
+    defaults: categoryDefaults,
+  },
+  "add-category": {
+    title: "Add Category",
+    singular: "category",
+    endpoint: "/categories",
+    listEndpoint: "/categories/admin",
+    createLabel: "Add Category",
+    viewable: false,
+    fields: [
+      { name: "name", label: "Category name", required: true },
+      { name: "slug", label: "URL slug", help: "Leave blank to generate from the category name." },
+      { name: "imageUrl", label: "Image URL" },
+      { name: "imageFiles", label: "Upload category image", type: "image-upload", multiple: false, wide: true, help: "Choose one JPEG, PNG, WebP, or AVIF image (8 MB max)." },
+      { name: "description", label: "Description", type: "textarea", wide: true },
+      { name: "isActive", label: "Active on storefront", type: "checkbox", wide: true },
+    ],
+    columns: [],
+    defaults: categoryDefaults,
   },
   offers: {
     title: "Offers",
@@ -143,6 +222,25 @@ const configs = {
   },
 };
 
+const routeMap = {
+  dashboard: "/dashboard",
+  analytics: "/analytics",
+  "add-product": "/products/add",
+  "products/add": "/products/add",
+  products: "/products",
+  categories: "/categories",
+  "categories/add": "/categories/add",
+  "add-category": "/categories/add",
+  brands: "/brands",
+  subcategories: "/subcategories",
+  banners: "/banners",
+  orders: "/orders",
+  customers: "/customers",
+  enquiries: "/enquiries",
+  "sales-reports": "/reports/sales",
+  "customer-reports": "/reports/customers",
+};
+
 function Status({ active, children }) {
   return <span className={`pill ${active ? "pill-green" : "pill-gray"}`}>{children || (active ? "Active" : "Inactive")}</span>;
 }
@@ -160,11 +258,26 @@ function App() {
       return null;
     }
   });
-  const [section, setSection] = useState("dashboard");
+
+  const getInitialSection = () => {
+    const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+    if (pathname === "/categories/add") return "categories/add";
+    if (pathname === "/categories") return "categories";
+    if (pathname === "/products/add") return "add-product";
+    if (pathname === "/products") return "products";
+    if (pathname === "/orders") return "orders";
+    if (pathname === "/customers") return "customers";
+    if (pathname === "/enquiries") return "enquiries";
+    if (pathname === "/analytics") return "analytics";
+    return "dashboard";
+  };
+
+  const [section, setSection] = useState(getInitialSection);
   const [notice, setNotice] = useState("");
   const [noticeError, setNoticeError] = useState(false);
   const [stats, setStats] = useState(emptyStats);
   const [items, setItems] = useState([]);
+  const [loadError, setLoadError] = useState(null);
   const [productPagination, setProductPagination] = useState(null);
   const [productPage, setProductPage] = useState(1);
   const [categoryPagination, setCategoryPagination] = useState(null);
@@ -200,39 +313,90 @@ function App() {
     }).catch(logout);
   }, [api, logout, session]);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+      if (pathname === "/categories/add") {
+        setSection("categories/add");
+        setEditing(null);
+        setForm({ ...categoryDefaults });
+      } else if (pathname === "/categories") {
+        setSection("categories");
+        setForm(null);
+        setEditing(null);
+      } else if (pathname === "/products/add") {
+        setSection("add-product");
+        setEditing(null);
+        setForm({ ...productDefaults });
+      } else if (pathname === "/products") {
+        setSection("products");
+        setForm(null);
+        setEditing(null);
+      } else {
+        const sec = pathname.replace(/^\//, "");
+        if (sec) {
+          setSection(sec);
+          setForm(null);
+          setEditing(null);
+        }
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const loadData = useCallback(async () => {
-    if (!session || !configs[section] || section === "orders" || section === "customers" || section === "service-enquiries") return;
+    if (!session || (!configs[section] && section !== "add-product" && section !== "categories/add" && section !== "add-category") || section === "orders" || section === "customers" || section === "service-enquiries") return;
     setLoading(true);
+    setLoadError(null);
     try {
       if (section === "dashboard") {
         setStats(await api("/admin/dashboard"));
       } else {
+        const isProductSection = section === "products" || section === "add-product";
         const path = section === "products"
           ? `${configs.products.listEndpoint}?page=${productPage}&limit=20`
           : section === "categories"
             ? `${configs.categories.listEndpoint}?page=${categoryPage}&limit=20&search=${encodeURIComponent(debouncedCategorySearch)}&status=${categoryStatus}`
           : section === "offers" || section === "services"
             ? `${configs[section].endpoint}?includeInactive=true`
-            : configs[section].endpoint;
+            : section === "add-product" || section === "categories/add" || section === "add-category"
+              ? null
+              : configs[section]?.endpoint;
         const [result, categoryRows] = await Promise.all([
-          api(path),
-          section === "products" ? api("/categories/admin?page=1&limit=100&status=all") : Promise.resolve(null),
+          path ? api(path) : Promise.resolve({ items: [] }),
+          isProductSection ? api("/categories/admin?page=1&limit=100&status=all") : Promise.resolve(null),
         ]);
-        const rows = section === "settings"
-          ? [result]
-          : section === "products" || section === "categories"
-            ? result.items
-            : result;
-        setItems(rows);
-        if (section === "products") {
-          setCategories(categoryRows.items);
-          setProductPagination(result.pagination);
+        if (result) {
+          const rows = section === "settings"
+            ? [result]
+            : section === "products" || section === "categories"
+              ? normalizeProductList(result)
+              : Array.isArray(result)
+                ? result
+                : normalizeProductList(result);
+          setItems(rows);
+        } else {
+          setItems([]);
         }
-        if (section === "categories") setCategoryPagination(result.pagination);
+        if (isProductSection && categoryRows) {
+          setCategories(normalizeProductList(categoryRows));
+        }
+        if (section === "products") {
+          setProductPagination(normalizePagination(result));
+        }
+        if (section === "categories") {
+          setCategoryPagination(normalizePagination(result));
+        }
       }
     } catch (issue) {
-      if (issue.message.includes("session") || issue.message.includes("Authentication")) logout();
-      else toast(issue.message, true);
+      if (issue.message.includes("session") || issue.message.includes("Authentication")) {
+        logout();
+      } else {
+        setLoadError(issue.message || "Failed to load catalog data.");
+        setItems([]);
+        toast(issue.message, true);
+      }
     } finally {
       setLoading(false);
     }
@@ -243,7 +407,7 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [loadData]);
 
-  const config = configs[section];
+  const config = configs[section] || configs.products;
   const ResourcePage = section === "categories"
     ? Categories
     : section === "offers"
@@ -266,11 +430,61 @@ function App() {
       setForm({ ...config.defaults, ...items[0] });
       return;
     }
+    if (section === "categories" || section === "categories/add" || section === "add-category") {
+      setEditing(null);
+      setForm({ ...categoryDefaults });
+      changeSection("categories/add");
+      return;
+    }
     setEditing(null);
-    setForm({ ...config.defaults });
+    setForm({ ...productDefaults });
+    changeSection("add-product");
   }
 
   function startEdit(item) {
+    if (section === "products" || section === "add-product") {
+      setEditing(item.id);
+      const existingImages = Array.isArray(item.images)
+        ? item.images.map((image) => (typeof image === "string" ? image : image.url)).filter(Boolean)
+        : String(item.images || "").split(/\r?\n/).map((u) => u.trim()).filter(Boolean);
+
+      setForm({
+        ...productDefaults,
+        ...item,
+        categoryId: item.categoryId || "",
+        model: item.model || item.sku || "",
+        brand: item.brand || "",
+        badge: item.badge || "",
+        description: item.description || "",
+        specifications: item.specifications || "",
+        isActive: item.isActive !== false,
+        isFeatured: Boolean(item.isFeatured),
+        imageUrl: item.imageUrl || existingImages[0] || "",
+        images: existingImages.slice(0, 3),
+        mainImageFile: null,
+        galleryFiles: [null, null, null],
+        price: item.price ?? "",
+        discountPrice: item.discountPrice ?? "",
+        stock: item.stock ?? 0,
+      });
+      changeSection("add-product");
+      return;
+    }
+    if (section === "categories" || section === "categories/add" || section === "add-category") {
+      setEditing(item.id);
+      setForm({
+        ...categoryDefaults,
+        ...item,
+        name: item.name || "",
+        slug: item.slug || "",
+        imageUrl: item.imageUrl || "",
+        imageFiles: [],
+        description: item.description || "",
+        isActive: item.isActive !== false,
+      });
+      changeSection("categories/add");
+      return;
+    }
     setEditing(item.id);
     setForm({
       ...config.defaults,
@@ -286,17 +500,23 @@ function App() {
 
   function payloadForSave() {
     const body = { ...form };
-    for (const field of config.fields) {
+    for (const field of config.fields || []) {
       if (field.type === "number") body[field.name] = body[field.name] == null || body[field.name] === "" ? null : Number(body[field.name]);
     }
-    if (section === "categories") {
+    if (section === "categories" || section === "add-category") {
       if (!body.slug) delete body.slug;
       delete body.imageFiles;
     }
-    if (section === "products" && !body.categoryId) body.categoryId = null;
-    if (section === "products") {
-      body.images = body.images.split(/\r?\n/).map((image) => image.trim()).filter(Boolean);
+    if (section === "products" || section === "add-product") {
+      body.images = Array.isArray(body.images)
+        ? body.images.map((image) => (typeof image === "string" ? image : image.url)).filter(Boolean)
+        : String(body.images || "").split(/\r?\n/).map((image) => image.trim()).filter(Boolean);
       delete body.imageFiles;
+      delete body.mainImageFile;
+      delete body.galleryFiles;
+      if (!body.categoryId) body.categoryId = null;
+      body.isActive = Boolean(body.isActive);
+      body.isFeatured = Boolean(body.isFeatured);
     }
     if (section === "offers") {
       body.startsAt = body.startsAt ? new Date(body.startsAt).toISOString() : null;
@@ -306,29 +526,71 @@ function App() {
   }
 
   async function save(event) {
-    event.preventDefault();
+    if (event?.preventDefault) event.preventDefault();
     setSaving(true);
     try {
+      const isProductSection = section === "products" || section === "add-product";
+      const isCategorySection = section === "categories" || section === "add-category";
+      const currentConfig = configs[section] || (isProductSection ? configs.products : isCategorySection ? configs.categories : configs.products);
       const method = editing || section === "settings" ? "PATCH" : "POST";
       const suffix = editing ? `/${editing}` : "";
       const body = payloadForSave();
-      if (section === "products" && form.imageFiles?.length) {
-        const imageForm = new FormData();
-        form.imageFiles.forEach((file) => imageForm.append("images", file));
-        const uploaded = await api("/products/images", { method: "POST", body: imageForm });
-        body.images = [...body.images, ...uploaded.images];
-        if (!body.imageUrl && uploaded.images.length) body.imageUrl = uploaded.images[0];
+
+      if (isProductSection) {
+        if (form.mainImageFile) {
+          const mainForm = new FormData();
+          mainForm.append("images", form.mainImageFile);
+          const uploadedMain = await api("/products/images", { method: "POST", body: mainForm });
+          if (uploadedMain.images?.length) body.imageUrl = uploadedMain.images[0];
+        } else if (form.imageUrl) {
+          body.imageUrl = form.imageUrl;
+        } else {
+          body.imageUrl = null;
+        }
+
+        const existingGallery = (Array.isArray(form.images) ? form.images : []).filter(Boolean);
+        if (form.galleryFiles && Array.isArray(form.galleryFiles)) {
+          const filesToUpload = form.galleryFiles.filter(Boolean);
+          if (filesToUpload.length > 0) {
+            const galleryForm = new FormData();
+            filesToUpload.forEach((file) => galleryForm.append("images", file));
+            const uploadedGallery = await api("/products/images", { method: "POST", body: galleryForm });
+            let uploadIdx = 0;
+            const finalGallery = [];
+            for (let i = 0; i < 3; i++) {
+              if (form.galleryFiles[i]) {
+                if (uploadedGallery.images?.[uploadIdx]) {
+                  finalGallery.push(uploadedGallery.images[uploadIdx++]);
+                }
+              } else if (existingGallery[i]) {
+                finalGallery.push(existingGallery[i]);
+              }
+            }
+            body.images = finalGallery;
+          } else {
+            body.images = existingGallery;
+          }
+        } else {
+          body.images = existingGallery;
+        }
       }
-      if (section === "categories" && form.imageFiles?.length) {
+      if (isCategorySection && form.imageFiles?.length) {
         const imageForm = new FormData();
         imageForm.append("image", form.imageFiles[0]);
         const uploaded = await api("/categories/images", { method: "POST", body: imageForm });
         body.imageUrl = uploaded.imageUrl;
       }
-      await api(`${config.endpoint}${suffix}`, { method, body: JSON.stringify(body) });
+      const endpoint = isProductSection ? "/products" : isCategorySection ? "/categories" : currentConfig.endpoint;
+      await api(`${endpoint}${suffix}`, { method, body: JSON.stringify(body) });
       setForm(null);
+      setEditing(null);
+      if (isProductSection) {
+        changeSection("products");
+      } else if (isCategorySection) {
+        changeSection("categories");
+      }
       await loadData();
-      toast(`${config.singular[0].toUpperCase()}${config.singular.slice(1)} ${editing ? "updated" : "created"}.`);
+      toast(`${editing ? "Updated" : "Created"} ${isCategorySection ? "category" : "product"} successfully.`);
     } catch (issue) {
       toast(issue.message, true);
     } finally {
@@ -372,7 +634,22 @@ function App() {
 
   const changeSection = (nextSection) => {
     setSection(nextSection);
-    setForm(null);
+    setLoadError(null);
+    if (nextSection === "add-product" || nextSection === "products/add") {
+      setEditing(null);
+      setForm({ ...productDefaults });
+    } else if (nextSection === "categories/add" || nextSection === "add-category") {
+      setEditing(null);
+      setForm({ ...categoryDefaults });
+    } else {
+      setForm(null);
+      setEditing(null);
+    }
+
+    const targetPath = routeMap[nextSection];
+    if (targetPath && window.location.pathname !== targetPath) {
+      window.history.pushState({ section: nextSection }, "", targetPath);
+    }
   };
 
   const placeholder = placeholderPagesWithCoupons[section];
@@ -381,6 +658,26 @@ function App() {
       <AdminLayout sections={sections} section={section} stats={stats} user={session.user} onNavigate={changeSection} onLogout={logout} notice={notice} noticeError={noticeError} api={api}>
         {section === "dashboard" ? (
           <Dashboard stats={stats} onNavigate={changeSection} />
+        ) : section === "add-product" ? (
+          <AddProduct
+            config={configs["add-product"] || configs.products}
+            form={form || productDefaults}
+            editing={editing}
+            saving={saving}
+            categories={categories}
+            onClose={() => changeSection("products")}
+            onChange={(name, value) => setForm((curr) => ({ ...(curr || productDefaults), [name]: value }))}
+            onSubmit={save}
+          />
+        ) : section === "categories/add" || section === "add-category" ? (
+          <AddCategory
+            form={form || categoryDefaults}
+            editing={editing}
+            saving={saving}
+            onClose={() => changeSection("categories")}
+            onChange={(name, value) => setForm((curr) => ({ ...(curr || categoryDefaults), [name]: value }))}
+            onSubmit={save}
+          />
         ) : section === "enquiries" ? (
           <Enquiries items={items} loading={loading} onStatus={setEnquiryStatus} onDelete={removeEnquiry} />
         ) : section === "orders" ? (
@@ -397,6 +694,8 @@ function App() {
             items={items}
             categories={categories}
             loading={loading}
+            error={loadError}
+            onRetry={loadData}
             form={form}
             editing={editing}
             saving={saving}
@@ -412,7 +711,7 @@ function App() {
             onCreate={startCreate}
             onEdit={startEdit}
             onDelete={remove}
-            onClose={() => setForm(null)}
+            onClose={() => changeSection(section === "categories" ? "categories" : "products")}
             onChange={(name, value) => setForm((current) => ({ ...current, [name]: value }))}
             onSubmit={save}
           />

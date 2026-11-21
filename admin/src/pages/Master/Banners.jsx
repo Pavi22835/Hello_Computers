@@ -123,7 +123,7 @@ function BannerPreviewNotice() {
 
 function BannerForm({ banner, editing, onChange, onImageChange, onRemoveImage, onClose, onSubmit }) {
   return (
-    <section className="banners-page">
+    <form className="banners-page" onSubmit={onSubmit}>
       <nav className="banner-breadcrumbs" aria-label="Breadcrumb">
         <button type="button" onClick={onClose}><ArrowLeft size={15} aria-hidden="true" /> Banners</button>
         <span aria-hidden="true">/</span>
@@ -131,95 +131,92 @@ function BannerForm({ banner, editing, onChange, onImageChange, onRemoveImage, o
       </nav>
 
       <header className="banners-heading">
-        <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+        <div className="banner-editor-title">
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>{editing ? "Edit Banner" : "Add Banner"}</h1>
           <p>{editing ? "Update the banner content and schedule." : "Create a promotional banner for your storefront."}</p>
+        </div>
+        <div className="banner-editor-header-actions">
+          <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
+          <button type="submit" className="primary-button">{editing ? "Update Banner" : "Save Banner"}</button>
         </div>
       </header>
 
       <BannerPreviewNotice />
 
-      <form className="banner-editor-form" onSubmit={onSubmit}>
-        <div className="banner-form-grid">
-          <section className="banner-form-card">
-            <div className="banner-section-heading">
-              <span className="banner-section-icon"><Layers3 size={18} aria-hidden="true" /></span>
-              <div><h2>Banner details</h2><p>Set the message, placement and scheduling.</p></div>
-            </div>
+      <div className="banner-form-grid">
+        <section className="banner-form-card">
+          <div className="banner-section-heading">
+            <span className="banner-section-icon"><Layers3 size={18} aria-hidden="true" /></span>
+            <div><h2>Banner details</h2><p>Set the message, placement and scheduling.</p></div>
+          </div>
 
-            <div className="banner-fields-stack">
+          <div className="banner-fields-stack">
+            <label className="banner-field">
+              Banner Title
+              <input autoFocus required value={banner.title} onChange={(event) => onChange("title", event.target.value)} placeholder="e.g. Upgrade your workspace" />
+            </label>
+
+            <label className="banner-field">
+              Banner Link / URL
+              <span className="banner-link-input"><Link2 size={16} aria-hidden="true" /><input value={banner.link} onChange={(event) => onChange("link", event.target.value)} placeholder="/products or https://example.com" /></span>
+              <small>Where customers go when they select this banner.</small>
+            </label>
+
+            <div className="banner-field-row">
               <label className="banner-field">
-                Banner Title
-                <input autoFocus required value={banner.title} onChange={(event) => onChange("title", event.target.value)} placeholder="e.g. Upgrade your workspace" />
+                Banner Type
+                <select required value={banner.type} onChange={(event) => onChange("type", event.target.value)}>
+                  {bannerTypes.map((type) => <option value={type} key={type}>{type}</option>)}
+                </select>
               </label>
-
               <label className="banner-field">
-                Banner Link / URL
-                <span className="banner-link-input"><Link2 size={16} aria-hidden="true" /><input value={banner.link} onChange={(event) => onChange("link", event.target.value)} placeholder="/products or https://example.com" /></span>
-                <small>Where customers go when they select this banner.</small>
+                Placement
+                <select required value={banner.placement} onChange={(event) => onChange("placement", event.target.value)}>
+                  {bannerPlacements.map((placement) => <option value={placement} key={placement}>{placement}</option>)}
+                </select>
               </label>
-
-              <div className="banner-field-row">
-                <label className="banner-field">
-                  Banner Type
-                  <select required value={banner.type} onChange={(event) => onChange("type", event.target.value)}>
-                    {bannerTypes.map((type) => <option value={type} key={type}>{type}</option>)}
-                  </select>
-                </label>
-                <label className="banner-field">
-                  Placement
-                  <select required value={banner.placement} onChange={(event) => onChange("placement", event.target.value)}>
-                    {bannerPlacements.map((placement) => <option value={placement} key={placement}>{placement}</option>)}
-                  </select>
-                </label>
-              </div>
-
-              <div className="banner-field-row">
-                <label className="banner-field">
-                  Start Date
-                  <span className="banner-date-input"><CalendarDays size={15} aria-hidden="true" /><input type="date" value={banner.startDate} max={banner.endDate || undefined} onChange={(event) => onChange("startDate", event.target.value)} /></span>
-                </label>
-                <label className="banner-field">
-                  End Date
-                  <span className="banner-date-input"><CalendarDays size={15} aria-hidden="true" /><input type="date" value={banner.endDate} min={banner.startDate || undefined} onChange={(event) => onChange("endDate", event.target.value)} /></span>
-                </label>
-              </div>
-              <p className="banner-schedule-help">Dates are optional. If set, the end date must be on or after the start date.</p>
-            </div>
-          </section>
-
-          <section className="banner-form-card banner-settings-card">
-            <div className="banner-section-heading">
-              <span className="banner-section-icon"><ImagePlus size={18} aria-hidden="true" /></span>
-              <div><h2>Banner image & settings</h2><p>Choose the image and visibility for this banner.</p></div>
             </div>
 
-            <BannerImageField banner={banner} onImageChange={onImageChange} onRemoveImage={onRemoveImage} />
-
-            <div className="banner-status-setting">
-              <div>
-                <h3><Check size={16} aria-hidden="true" />Status</h3>
-                <p>Choose whether this banner is currently active.</p>
-              </div>
-              <div className="banner-status-control" role="group" aria-label="Banner status">
-                <button type="button" className={banner.isActive ? "is-selected" : ""} aria-pressed={Boolean(banner.isActive)} onClick={() => onChange("isActive", true)}>
-                  <span className="banner-status-dot banner-status-dot-active" />Active
-                </button>
-                <button type="button" className={!banner.isActive ? "is-selected" : ""} aria-pressed={!banner.isActive} onClick={() => onChange("isActive", false)}>
-                  <span className="banner-status-dot banner-status-dot-inactive" />Inactive
-                </button>
-              </div>
+            <div className="banner-field-row">
+              <label className="banner-field">
+                Start Date
+                <span className="banner-date-input"><CalendarDays size={15} aria-hidden="true" /><input type="date" value={banner.startDate} max={banner.endDate || undefined} onChange={(event) => onChange("startDate", event.target.value)} /></span>
+              </label>
+              <label className="banner-field">
+                End Date
+                <span className="banner-date-input"><CalendarDays size={15} aria-hidden="true" /><input type="date" value={banner.endDate} min={banner.startDate || undefined} onChange={(event) => onChange("endDate", event.target.value)} /></span>
+              </label>
             </div>
-          </section>
-        </div>
+            <p className="banner-schedule-help">Dates are optional. If set, the end date must be on or after the start date.</p>
+          </div>
+        </section>
 
-        <footer className="banner-form-actions">
-          <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
-          <button type="submit" className="primary-button">{editing ? "Update Banner" : "Save Banner"}</button>
-        </footer>
-      </form>
-    </section>
+        <section className="banner-form-card banner-settings-card">
+          <div className="banner-section-heading">
+            <span className="banner-section-icon"><ImagePlus size={18} aria-hidden="true" /></span>
+            <div><h2>Banner image & settings</h2><p>Choose the image and visibility for this banner.</p></div>
+          </div>
+
+          <BannerImageField banner={banner} onImageChange={onImageChange} onRemoveImage={onRemoveImage} />
+
+          <div className="banner-status-setting">
+            <div>
+              <h3><Check size={16} aria-hidden="true" />Status</h3>
+              <p>Choose whether this banner is currently active.</p>
+            </div>
+            <div className="banner-status-control" role="group" aria-label="Banner status">
+              <button type="button" className={banner.isActive ? "is-selected" : ""} aria-pressed={Boolean(banner.isActive)} onClick={() => onChange("isActive", true)}>
+                <span className="banner-status-dot banner-status-dot-active" />Active
+              </button>
+              <button type="button" className={!banner.isActive ? "is-selected" : ""} aria-pressed={!banner.isActive} onClick={() => onChange("isActive", false)}>
+                <span className="banner-status-dot banner-status-dot-inactive" />Inactive
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </form>
   );
 }
 
@@ -313,7 +310,7 @@ function Banners() {
     <section className="banners-page">
       <header className="banners-heading banners-list-heading">
         <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>Banners</h1>
           <p>Manage promotions and placements across your storefront.</p>
         </div>
@@ -371,23 +368,32 @@ function Banners() {
           <div className="banner-table-scroll">
             <table className="banner-table">
               <thead>
-                <tr><th>Preview</th><th>Title</th><th>Type</th><th>Placement</th><th>Status</th><th>Start date</th><th>End date</th><th>Actions</th></tr>
+                <tr>
+                  <th className="banner-col-preview">Preview</th>
+                  <th className="banner-col-title">Title</th>
+                  <th className="banner-col-type">Type</th>
+                  <th className="banner-col-placement">Placement</th>
+                  <th className="banner-col-status">Status</th>
+                  <th className="banner-col-start">Start date</th>
+                  <th className="banner-col-end">End date</th>
+                  <th className="banner-col-actions">Actions</th>
+                </tr>
               </thead>
               <tbody>
                 {filteredBanners.map((banner) => (
                   <tr key={banner.id}>
-                    <td><BannerPreview banner={banner} className="banner-table-preview" /></td>
-                    <td><strong className="banner-title">{banner.title}</strong></td>
-                    <td><span className="banner-type-label">{banner.type}</span></td>
-                    <td>{banner.placement}</td>
-                    <td><span className={`banner-status-badge ${banner.isActive ? "banner-status-active" : "banner-status-inactive"}`}><span />{banner.isActive ? "Active" : "Inactive"}</span></td>
-                    <td><span className="banner-date-value">{formatBannerDate(banner.startDate)}</span></td>
-                    <td><span className="banner-date-value">{formatBannerDate(banner.endDate)}</span></td>
-                    <td>
+                    <td className="banner-col-preview"><BannerPreview banner={banner} className="banner-table-preview" /></td>
+                    <td className="banner-col-title"><strong className="banner-title">{banner.title}</strong></td>
+                    <td className="banner-col-type"><span className="banner-type-label">{banner.type}</span></td>
+                    <td className="banner-col-placement"><span className="banner-placement-value">{banner.placement}</span></td>
+                    <td className="banner-col-status"><span className={`banner-status-badge ${banner.isActive ? "banner-status-active" : "banner-status-inactive"}`}><span />{banner.isActive ? "Active" : "Inactive"}</span></td>
+                    <td className="banner-col-start"><span className="banner-date-value">{formatBannerDate(banner.startDate)}</span></td>
+                    <td className="banner-col-end"><span className="banner-date-value">{formatBannerDate(banner.endDate)}</span></td>
+                    <td className="banner-col-actions">
                       <div className="banner-row-actions">
-                        <button type="button" aria-label={`View ${banner.title}`} title="View" onClick={() => setSelectedBanner(banner)}><Eye size={16} aria-hidden="true" /></button>
-                        <button type="button" aria-label={`Edit ${banner.title}`} title="Edit" onClick={() => startEdit(banner)}><Pencil size={16} aria-hidden="true" /></button>
-                        <button type="button" aria-label={`Delete ${banner.title}`} title="Delete" onClick={() => removeBanner(banner)}><Trash2 size={16} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`View ${banner.title}`} title="View" onClick={() => setSelectedBanner(banner)}><Eye size={22} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`Edit ${banner.title}`} title="Edit" onClick={() => startEdit(banner)}><Pencil size={22} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`Delete ${banner.title}`} title="Delete" onClick={() => removeBanner(banner)}><Trash2 size={22} aria-hidden="true" /></button>
                       </div>
                     </td>
                   </tr>

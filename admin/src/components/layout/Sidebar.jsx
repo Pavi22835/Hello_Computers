@@ -3,13 +3,21 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 import logo from "../../assets/logos/logo.jpeg";
 
 function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate, onLogout }) {
+  const isSectionInGroup = (group, sec) => {
+    return (
+      group.sectionIds.includes(sec) ||
+      (group.sectionIds.includes("categories") && (sec === "categories/add" || sec === "add-category")) ||
+      (group.sectionIds.includes("products") && (sec === "products/add" || sec === "add-product"))
+    );
+  };
+
   const [expandedGroupIds, setExpandedGroupIds] = useState(() => {
-    const initialActiveGroupId = navigationGroups.find((group) => group.sectionIds.includes(section))?.id;
+    const initialActiveGroupId = navigationGroups.find((group) => isSectionInGroup(group, section))?.id;
     return initialActiveGroupId ? { [initialActiveGroupId]: true } : {};
   });
 
   useEffect(() => {
-    const currentActiveGroupId = navigationGroups.find((group) => group.sectionIds.includes(section))?.id;
+    const currentActiveGroupId = navigationGroups.find((group) => isSectionInGroup(group, section))?.id;
     if (currentActiveGroupId) {
       setExpandedGroupIds((prev) => (prev[currentActiveGroupId] ? prev : { ...prev, [currentActiveGroupId]: true }));
     }
@@ -33,7 +41,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
       <nav className="sidebar-nav" aria-label="Admin sections">
         {navigationGroups.map((group) => {
           const Icon = group.icon;
-          const isActive = group.sectionIds.includes(section);
+          const isActive = isSectionInGroup(group, section);
           const isExpanded = Boolean(expandedGroupIds[group.id]);
           const submenuId = `sidebar-submenu-${group.id}`;
 
@@ -46,9 +54,9 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
                 aria-controls={submenuId}
                 onClick={() => toggleGroup(group.id)}
               >
-                <span className="nav-module-icon"><Icon size={18} aria-hidden="true" /></span>
+                <span className="nav-module-icon"><Icon size={20} aria-hidden="true" /></span>
                 <span className="nav-module-label">{group.label}</span>
-                <ChevronDown className="nav-module-chevron" size={16} aria-hidden="true" />
+                <ChevronDown className="nav-module-chevron" size={18} aria-hidden="true" />
               </button>
               <div id={submenuId} className={`nav-submenu ${isExpanded ? "nav-submenu-open" : ""}`} aria-hidden={!isExpanded}>
                 <div className="nav-submenu-inner">
@@ -56,7 +64,10 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
                     const item = sectionById.get(sectionId);
                     if (!item) return null;
                     const ItemIcon = item.icon;
-                    const itemIsActive = section === item.id;
+                    const itemIsActive =
+                      section === item.id ||
+                      (item.id === "categories" && (section === "categories/add" || section === "add-category")) ||
+                      (item.id === "add-product" && (section === "add-product" || section === "products/add"));
 
                     return (
                       <button
@@ -67,7 +78,7 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
                         tabIndex={isExpanded ? 0 : -1}
                         onClick={() => onNavigate(item.id)}
                       >
-                        <span className="nav-sub-link-icon"><ItemIcon size={17} aria-hidden="true" /></span>
+                        <span className="nav-sub-link-icon"><ItemIcon size={16} aria-hidden="true" /></span>
                         <span className="nav-sub-link-label">{item.label}</span>
                         {item.id === "enquiries" && stats.newEnquiries > 0 && <span className="nav-count">{stats.newEnquiries}</span>}
                       </button>
@@ -79,10 +90,12 @@ function Sidebar({ sections, navigationGroups, section, stats, user, onNavigate,
           );
         })}
       </nav>
+      {/* 
       <div className="sidebar-bottom">
-        <div className="profile-chip"><span className="avatar">{user.name?.slice(0, 1).toUpperCase()}</span><span>{user.name}<small>Administrator</small></span></div>
+        <div className="profile-chip"><span className="avatar">{user?.name?.slice(0, 1).toUpperCase()}</span><span>{user?.name}<small>Administrator</small></span></div>
         <button className="logout-button" onClick={onLogout}>Sign out <ArrowUpRight size={18} aria-hidden="true" /></button>
-      </div>
+      </div> 
+      */}
     </aside>
   );
 }

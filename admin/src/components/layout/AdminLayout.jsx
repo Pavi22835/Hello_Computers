@@ -10,7 +10,7 @@ function AdminLayout({ sections, section, stats, user, onNavigate, onLogout, not
     <div className="admin-shell">
       <Sidebar sections={sections} navigationGroups={navigationGroups} section={section} stats={stats} user={user} onNavigate={onNavigate} onLogout={onLogout} />
       <main className="main-panel">
-        <Topbar section={activeSection} group={activeGroup} user={user} onNavigate={onNavigate} api={api} />
+        <Topbar section={activeSection} group={activeGroup} user={user} onNavigate={onNavigate} onLogout={onLogout} api={api} />
         {notice && <div className={`toast ${noticeError ? "toast-error" : ""}`} role="status">{notice}</div>}
         <div className="page-content">{children}</div>
       </main>

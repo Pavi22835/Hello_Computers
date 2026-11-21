@@ -215,7 +215,7 @@ function OrdersManagement({ api, toast }) {
     <section className="orders-manager">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>Orders</h1>
           <p>Review orders, track fulfillment, and manage payments.</p>
         </div>
@@ -318,7 +318,7 @@ function OrdersManagement({ api, toast }) {
                     <td><strong>{order.paymentMethod}</strong><small><OrderStatus value={order.paymentStatus} /></small></td>
                     <td><OrderStatus value={order.status} /></td>
                     <td>{dateTime(order.createdAt)}</td>
-                    <td><button type="button" className="row-view" onClick={() => loadOrderDetails(order.id)} aria-label={`View ${order.orderNumber}`} title="View order"><Eye size={16} /></button></td>
+                    <td><button type="button" className="row-view" onClick={() => loadOrderDetails(order.id)} aria-label={`View ${order.orderNumber}`} title="View order"><Eye size={22} /></button></td>
                   </tr>
                 ))}
               </tbody>

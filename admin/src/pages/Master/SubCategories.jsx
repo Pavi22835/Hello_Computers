@@ -89,8 +89,23 @@ function SubcategoryImageField({ subcategory, onImageChange, onRemoveImage }) {
   const hasImage = Boolean(subcategory.imageUrl);
   return (
     <div className="subcategory-image-content">
-      <div className={`subcategory-image-preview ${hasImage ? "has-image" : ""}`}>
-        {hasImage ? <img src={subcategory.imageUrl} alt="Subcategory image preview" /> : <div><ImagePlus size={28} aria-hidden="true" /><span>Image preview</span></div>}
+      <div
+        className={`subcategory-image-preview ${hasImage ? "has-image" : ""}`}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const file = event.dataTransfer.files?.[0];
+          if (file) onImageChange(file);
+        }}
+      >
+        {hasImage ? (
+          <img src={subcategory.imageUrl} alt="Subcategory image preview" />
+        ) : (
+          <div>
+            <ImagePlus size={40} aria-hidden="true" />
+            <span>Image preview</span>
+          </div>
+        )}
       </div>
       {subcategory.imageFileName && <p className="subcategory-image-filename" title={subcategory.imageFileName}>{subcategory.imageFileName}</p>}
       <div className="subcategory-image-actions">
@@ -119,7 +134,7 @@ function SubcategoryForm({ subcategory, editing, onChange, onImageChange, onRemo
   }
 
   return (
-    <section className="subcategories-page">
+    <form className="subcategories-page" onSubmit={onSubmit}>
       <nav className="subcategory-breadcrumbs" aria-label="Breadcrumb">
         <button type="button" onClick={onClose}><ArrowLeft size={15} aria-hidden="true" /> Subcategories</button>
         <span aria-hidden="true">/</span>
@@ -127,82 +142,79 @@ function SubcategoryForm({ subcategory, editing, onChange, onImageChange, onRemo
       </nav>
 
       <header className="subcategories-heading">
-        <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+        <div className="subcategory-editor-title">
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>{editing ? "Edit Subcategory" : "Add Subcategory"}</h1>
           <p>{editing ? "Update the subcategory details below." : "Create a subcategory within a parent category."}</p>
         </div>
-      </header>
-
-      <form className="subcategory-editor-form" onSubmit={onSubmit}>
-        <div className="subcategory-form-grid">
-          <section className="subcategory-form-card">
-            <div className="subcategory-section-heading">
-              <span className="subcategory-section-icon"><Tag size={18} aria-hidden="true" /></span>
-              <div><h2>Subcategory information</h2><p>Set the name, parent and details customers will see.</p></div>
-            </div>
-
-            <div className="subcategory-fields-stack">
-              <label className="subcategory-field">
-                Subcategory Name
-                <input autoFocus required value={subcategory.name} onChange={(event) => changeName(event.target.value)} placeholder="e.g. Gaming Laptops" />
-              </label>
-
-              <label className="subcategory-field">
-                Slug
-                <input required value={subcategory.slug} onChange={(event) => {
-                  setSlugEdited(true);
-                  onChange("slug", slugify(event.target.value));
-                }} placeholder="e.g. gaming-laptops" />
-                <small>Generated from the subcategory name. You can edit it.</small>
-              </label>
-
-              <label className="subcategory-field">
-                Parent Category
-                <select required value={subcategory.parentCategoryId} onChange={(event) => onChange("parentCategoryId", event.target.value)}>
-                  <option value="">Select a parent category</option>
-                  {parentCategories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
-                </select>
-              </label>
-
-              <label className="subcategory-field">
-                Description
-                <textarea rows="4" value={subcategory.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Describe this subcategory." />
-              </label>
-            </div>
-          </section>
-
-          <section className="subcategory-form-card subcategory-settings-card">
-            <div className="subcategory-section-heading">
-              <span className="subcategory-section-icon"><ImagePlus size={18} aria-hidden="true" /></span>
-              <div><h2>Subcategory image & settings</h2><p>Upload an image and choose its visibility.</p></div>
-            </div>
-
-            <SubcategoryImageField subcategory={subcategory} onImageChange={onImageChange} onRemoveImage={onRemoveImage} />
-
-            <div className="subcategory-status-setting">
-              <div>
-                <h3><Check size={16} aria-hidden="true" />Status</h3>
-                <p>Choose whether this subcategory is available in your store.</p>
-              </div>
-              <div className="subcategory-status-control" role="group" aria-label="Subcategory status">
-                <button type="button" className={subcategory.isActive ? "is-selected" : ""} aria-pressed={Boolean(subcategory.isActive)} onClick={() => onChange("isActive", true)}>
-                  <span className="subcategory-status-dot subcategory-status-dot-active" />Active
-                </button>
-                <button type="button" className={!subcategory.isActive ? "is-selected" : ""} aria-pressed={!subcategory.isActive} onClick={() => onChange("isActive", false)}>
-                  <span className="subcategory-status-dot subcategory-status-dot-inactive" />Inactive
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <footer className="subcategory-form-actions">
+        <div className="subcategory-editor-header-actions">
           <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
           <button type="submit" className="primary-button">{editing ? "Update Subcategory" : "Save Subcategory"}</button>
-        </footer>
-      </form>
-    </section>
+        </div>
+      </header>
+
+      <div className="subcategory-form-grid">
+        <section className="subcategory-form-card">
+          <div className="subcategory-section-heading">
+            <span className="subcategory-section-icon"><Tag size={18} aria-hidden="true" /></span>
+            <div><h2>Subcategory information</h2><p>Set the name, parent and details customers will see.</p></div>
+          </div>
+
+          <div className="subcategory-fields-stack">
+            <label className="subcategory-field">
+              Subcategory Name
+              <input autoFocus required value={subcategory.name} onChange={(event) => changeName(event.target.value)} placeholder="e.g. Gaming Laptops" />
+            </label>
+
+            <label className="subcategory-field">
+              Slug
+              <input required value={subcategory.slug} onChange={(event) => {
+                setSlugEdited(true);
+                onChange("slug", slugify(event.target.value));
+              }} placeholder="e.g. gaming-laptops" />
+              <small>Generated from the subcategory name. You can edit it.</small>
+            </label>
+
+            <label className="subcategory-field">
+              Parent Category
+              <select required value={subcategory.parentCategoryId} onChange={(event) => onChange("parentCategoryId", event.target.value)}>
+                <option value="">Select a parent category</option>
+                {parentCategories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
+              </select>
+            </label>
+
+            <label className="subcategory-field">
+              Description
+              <textarea rows="4" value={subcategory.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Describe this subcategory." />
+            </label>
+          </div>
+        </section>
+
+        <section className="subcategory-form-card subcategory-settings-card">
+          <div className="subcategory-section-heading">
+            <span className="subcategory-section-icon"><ImagePlus size={18} aria-hidden="true" /></span>
+            <div><h2>Subcategory image & settings</h2><p>Upload an image and choose its visibility.</p></div>
+          </div>
+
+          <SubcategoryImageField subcategory={subcategory} onImageChange={onImageChange} onRemoveImage={onRemoveImage} />
+
+          <div className="subcategory-status-setting">
+            <div>
+              <h3><Check size={16} aria-hidden="true" />Status</h3>
+              <p>Choose whether this subcategory is available in your store.</p>
+            </div>
+            <div className="subcategory-status-control" role="group" aria-label="Subcategory status">
+              <button type="button" className={subcategory.isActive ? "is-selected" : ""} aria-pressed={Boolean(subcategory.isActive)} onClick={() => onChange("isActive", true)}>
+                <span className="subcategory-status-dot subcategory-status-dot-active" />Active
+              </button>
+              <button type="button" className={!subcategory.isActive ? "is-selected" : ""} aria-pressed={!subcategory.isActive} onClick={() => onChange("isActive", false)}>
+                <span className="subcategory-status-dot subcategory-status-dot-inactive" />Inactive
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </form>
   );
 }
 
@@ -298,7 +310,7 @@ function SubCategories() {
     <section className="subcategories-page">
       <header className="subcategories-heading subcategories-list-heading">
         <div>
-          <p className="eyebrow">STORE MANAGEMENT</p>
+          {/* <p className="eyebrow">STORE MANAGEMENT</p> */}
           <h1>Subcategories</h1>
           <p>Organize your products into clear, easy-to-browse groups.</p>
         </div>
@@ -360,9 +372,9 @@ function SubCategories() {
                     <td><span className="subcategory-created"><CalendarDays size={15} aria-hidden="true" />{date(subcategory.createdAt)}</span></td>
                     <td>
                       <div className="subcategory-row-actions">
-                        <button type="button" aria-label={`View ${subcategory.name}`} title="View" onClick={() => setSelectedSubcategory(subcategory)}><Eye size={16} aria-hidden="true" /></button>
-                        <button type="button" aria-label={`Edit ${subcategory.name}`} title="Edit" onClick={() => startEdit(subcategory)}><Pencil size={16} aria-hidden="true" /></button>
-                        <button type="button" aria-label={`Delete ${subcategory.name}`} title="Delete" onClick={() => removeSubcategory(subcategory)}><Trash2 size={16} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`View ${subcategory.name}`} title="View" onClick={() => setSelectedSubcategory(subcategory)}><Eye size={22} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`Edit ${subcategory.name}`} title="Edit" onClick={() => startEdit(subcategory)}><Pencil size={22} aria-hidden="true" /></button>
+                        <button type="button" aria-label={`Delete ${subcategory.name}`} title="Delete" onClick={() => removeSubcategory(subcategory)}><Trash2 size={22} aria-hidden="true" /></button>
                       </div>
                     </td>
                   </tr>

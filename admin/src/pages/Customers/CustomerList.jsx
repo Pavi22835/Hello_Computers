@@ -320,7 +320,7 @@ function CustomerList({ api, toast }) {
                       <td className="customer-spent">{money(customer.totalSpent)}</td>
                       <td title={lastOrderAt ? undefined : "Not provided by the current Customers API"}>{lastOrderAt ? dateTime(lastOrderAt) : "—"}</td>
                       <td><CustomerStatus active={customer.isActive} /></td>
-                      <td><button type="button" className="customer-view-button" onClick={() => loadCustomerDetails(customer.id)} aria-label={`View details for ${customer.name}`} title="View details"><Eye size={16} aria-hidden="true" /><span>View</span></button></td>
+                      <td><button type="button" className="customer-view-button" onClick={() => loadCustomerDetails(customer.id)} aria-label={`View details for ${customer.name}`} title="View details"><Eye size={20} aria-hidden="true" /><span>View</span></button></td>
                     </tr>
                   );
                 })}

@@ -206,7 +206,7 @@ function ServiceEnquiriesManagement({ api, toast }) {
                   <td className="service-enquiry-issue">{item.issueDescription}</td>
                   <td>{dateTime(item.createdAt)}</td>
                   <td><ServiceEnquiryStatus value={item.status} /></td>
-                  <td><button type="button" className="row-view" onClick={() => loadDetails(item.id)} aria-label={`View service enquiry ${item.id}`} title="View enquiry"><Eye size={16} /></button></td>
+                  <td><button type="button" className="row-view" onClick={() => loadDetails(item.id)} aria-label={`View service enquiry ${item.id}`} title="View enquiry"><Eye size={22} /></button></td>
                 </tr>
               ))}</tbody>
             </table>
